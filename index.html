@@ -1,0 +1,4390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LatentVision Studio — Latent Topology & Synesthetic Audio Engine</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-outer: #070709;
+      --bg-shell: #0d0d10;
+      --bg-sidebar: #111114;
+      --bg-card: #16161a;
+      --bg-card-elevated: #1c1c21;
+      --bg-control: rgba(255, 255, 255, 0.045);
+      --bg-control-hover: rgba(255, 255, 255, 0.085);
+      --border-hairline: rgba(255, 255, 255, 0.065);
+      --border-card-top: rgba(255, 255, 255, 0.11);
+      --border-focus: rgba(255, 255, 255, 0.24);
+      --text-primary: #f4f4f6;
+      --text-secondary: #9ca3af;
+      --text-tertiary: #646770;
+      --accent-td: #38bdf8;
+      --accent-live: #34d399;
+      --accent-rec: #f43f5e;
+      --accent-warn: #fbbf24;
+      --accent-purple: #a78bfa;
+      --radius-2xl: 20px;
+      --radius-xl: 14px;
+      --radius-lg: 11px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Hiragino Sans", "PingFang SC", "Helvetica Neue", sans-serif;
+      --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-outer);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      padding: 10px;
+      user-select: none;
+    }
+
+    /* =========================================================================
+       Ember 极简暗黑磨砂三栏应用外壳 (App Shell)
+       ========================================================================= */
+    .app-shell {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-shell);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-2xl);
+      display: grid;
+      grid-template-columns: 224px 1fr;
+      overflow: hidden;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    @media (max-width: 1100px) {
+      .app-shell { grid-template-columns: 196px 1fr; }
+    }
+
+    /* =========================================================================
+       左侧导航边栏 (Ember 风格 Sidebar: 极简球体裂变标志 + 模块导航 + 预设组)
+       ========================================================================= */
+    .sidebar-nav {
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-hairline);
+      padding: 18px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .sidebar-top {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 4px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo-svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-tertiary);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-hairline);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    /* 顶部音源与状态胶囊条 */
+    .sidebar-source-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hairline);
+      border-top-color: var(--border-card-top);
+      border-radius: var(--radius-lg);
+      padding: 9px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    .sidebar-source-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .status-dot-live {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-live);
+      box-shadow: 0 0 8px var(--accent-live);
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .nav-section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      padding: 0 8px;
+      margin-bottom: 4px;
+      letter-spacing: 0.01em;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .nav-item {
+      width: 100%;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: left;
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .nav-icon {
+      width: 15px;
+      height: 15px;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    .nav-item:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.095) 0%, rgba(255, 255, 255, 0.04) 100%);
+      border-color: rgba(255, 255, 255, 0.08);
+      border-top-color: rgba(255, 255, 255, 0.18);
+      color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+    }
+
+    .nav-item.active .nav-icon {
+      opacity: 1;
+    }
+
+    /* 左下角 Ember 风格发光圆点预设列表 */
+    .sidebar-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-hairline);
+    }
+
+    .preset-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .preset-pill {
+      width: 100%;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 9px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.16s ease;
+    }
+
+    .preset-pill-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .preset-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .preset-tag {
+      font-size: 10.5px;
+      color: var(--text-tertiary);
+    }
+
+    .preset-pill:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+
+    .preset-pill.active {
+      background: rgba(255, 255, 255, 0.075);
+      border-color: var(--border-hairline);
+      border-top-color: rgba(255, 255, 255, 0.15);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* =========================================================================
+       右侧主视图区 (顶部面包屑栏 + Ember 数据波峰卡片行 + 中央画布与右侧面板)
+       ========================================================================= */
+    .main-area {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-shell);
+    }
+
+    .topbar {
+      height: 54px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .topbar-crumb {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      padding-left: 10px;
+      border-left: 1px solid var(--border-hairline);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* 多语言切换胶囊 (中文 / EN / 日本語) */
+    .lang-switcher {
+      display: inline-flex;
+      background: var(--bg-card);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: 2px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .lang-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .lang-btn.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* =========================================================================
+       顶部 Ember 风格实时指标与多彩流光波形卡片栏
+       ========================================================================= */
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: 195px 195px 1fr;
+      gap: 12px;
+      padding: 12px 18px 0;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 1180px) {
+      .metrics-strip { grid-template-columns: 165px 165px 1fr; }
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hairline);
+      border-top-color: var(--border-card-top);
+      border-radius: var(--radius-xl);
+      padding: 11px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    }
+
+    .metric-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+
+    .metric-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 1.5px 6px;
+      border-radius: 5px;
+      background: rgba(52, 211, 153, 0.12);
+      color: var(--accent-live);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .metric-big-num {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-sub-info {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    .wave-card {
+      position: relative;
+      overflow: hidden;
+      padding: 10px 14px;
+    }
+
+    #chopCanvas {
+      width: 100%;
+      height: 44px;
+      display: block;
+    }
+
+    /* =========================================================================
+       下方主工作区：中央画布舞台 + 右侧参数控制面板
+       ========================================================================= */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 356px;
+      gap: 12px;
+      padding: 12px 18px 16px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    @media (max-width: 980px) {
+      .workspace { grid-template-columns: 1fr; }
+    }
+
+    .viewport-stage {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background-color: #09090c;
+      background-image:
+        radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+        radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.025) 0%, transparent 70%);
+      background-size: 22px 22px, 100% 100%;
+      border: 1px solid var(--border-hairline);
+      border-top-color: var(--border-card-top);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 36px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 20px 20px 62px;
+    }
+
+    .viewport-stage.drag-over {
+      border-color: var(--accent-td);
+      background-color: rgba(56, 189, 248, 0.05);
+    }
+
+    .corner-mark {
+      position: absolute;
+      width: 9px;
+      height: 9px;
+      pointer-events: none;
+      opacity: 0.24;
+    }
+    .corner-mark::before, .corner-mark::after {
+      content: "";
+      position: absolute;
+      background: var(--text-secondary);
+    }
+    .corner-mark::before { width: 9px; height: 1px; top: 4px; left: 0; }
+    .corner-mark::after { width: 1px; height: 9px; top: 0; left: 4px; }
+    .cm-tl { top: 12px; left: 12px; }
+    .cm-tr { top: 12px; right: 12px; }
+    .cm-bl { bottom: 12px; left: 12px; }
+    .cm-br { bottom: 12px; right: 12px; }
+
+    .canvas-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    #mainCanvas {
+      max-width: 100%;
+      max-height: calc(100vh - 255px);
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      background: #000;
+      display: block;
+    }
+
+    #mainCanvas.roi-cursor {
+      cursor: crosshair;
+    }
+
+    /* 底部悬浮控制条 */
+    .floating-dock {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(22, 22, 27, 0.86);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-top-color: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      padding: 4.5px 11px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+      z-index: 15;
+    }
+
+    .dock-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 4.5px 9px;
+      border-radius: 99px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .dock-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .dock-btn.active-tool {
+      background: rgba(251, 191, 36, 0.18);
+      color: var(--accent-warn);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+
+    .dock-divider {
+      width: 1px;
+      height: 14px;
+      background: var(--border-hairline);
+    }
+
+    .dock-timecode {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .dock-select {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      outline: none;
+      padding-right: 4px;
+    }
+
+    /* =========================================================================
+       右侧参数检查器 (Ember 磨砂暗黑卡片式 Inspector)
+       ========================================================================= */
+    .inspector {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .inspector::-webkit-scrollbar { width: 4px; }
+    .inspector::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 4px; }
+
+    .op-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hairline);
+      border-top-color: var(--border-card-top);
+      border-radius: var(--radius-xl);
+      padding: 13px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .op-card.hidden-by-tab {
+      display: none;
+    }
+
+    .op-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+    }
+
+    .op-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .op-code {
+      font-size: 10.5px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .btn {
+      padding: 7.5px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-hairline);
+      border-top-color: rgba(255, 255, 255, 0.12);
+      background: var(--bg-control);
+      color: var(--text-primary);
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--bg-control-hover);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn-apple-primary {
+      background: var(--text-primary);
+      color: #09090b;
+      border-color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-apple-primary:hover:not(:disabled) {
+      background: #e4e4e7;
+      color: #09090b;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn.recording-active {
+      background: rgba(244, 63, 94, 0.16);
+      border-color: var(--accent-rec);
+      color: #fda4af;
+    }
+
+    /* 分段控制器 */
+    .segmented {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      background: rgba(0, 0, 0, 0.36);
+      padding: 2.5px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4.5px 3px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .seg-btn:hover { color: var(--text-primary); }
+
+    .seg-btn.active {
+      background: rgba(255, 255, 255, 0.13);
+      color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mono-val {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-primary);
+    }
+
+    select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: rgba(0, 0, 0, 0.32);
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      padding: 6px 24px 6px 9px;
+      border-radius: var(--radius-sm);
+      font-size: 11.5px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:hover, select:focus { border-color: var(--border-focus); }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.11);
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.55);
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      padding: 1.5px 0;
+    }
+
+    .ios-switch {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .ios-switch input { opacity: 0; width: 0; height: 0; }
+
+    .ios-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.13);
+      transition: 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 999px;
+    }
+
+    .ios-slider::before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: #ffffff;
+      transition: 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .ios-switch input:checked + .ios-slider { background-color: var(--accent-live); }
+    .ios-switch input:checked + .ios-slider::before { transform: translateX(14px); }
+
+    .color-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .swatch-list { display: flex; align-items: center; gap: 6px; }
+
+    .swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .swatch:hover { transform: scale(1.12); }
+    .swatch.active { border-color: #ffffff; box-shadow: 0 0 0 1px rgba(0,0,0,0.8); }
+
+    .color-custom {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.32);
+      border: 1px solid var(--border-hairline);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    input[type="color"] {
+      width: 16px;
+      height: 16px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .color-hex-input {
+      width: 58px;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      outline: none;
+    }
+
+    /* 统一风格的自定义下拉菜单 (替代系统原生白色弹出列表) */
+    .lv-select { position: relative; width: 100%; }
+    .lv-select.compact { width: auto; }
+    .lv-select-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.32);
+      border: 1px solid var(--border-hairline);
+      color: var(--text-primary);
+      padding: 6px 9px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 11.5px;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s ease;
+    }
+    .lv-select-btn:hover, .lv-select.open .lv-select-btn { border-color: var(--border-focus); }
+    .lv-select-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lv-caret { width: 11px; height: 11px; opacity: 0.6; flex-shrink: 0; transition: transform 0.16s ease; }
+    .lv-select.open .lv-caret { transform: rotate(180deg); }
+    .lv-select.compact .lv-select-btn {
+      background: transparent;
+      border: none;
+      padding: 2px 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .lv-menu {
+      position: fixed;
+      z-index: 1000;
+      display: none;
+      background: rgba(24, 24, 29, 0.97);
+      backdrop-filter: blur(20px) saturate(170%);
+      -webkit-backdrop-filter: blur(20px) saturate(170%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-top-color: rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      padding: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.62);
+    }
+    .lv-menu.open { display: block; }
+    .lv-menu::-webkit-scrollbar { width: 4px; }
+    .lv-menu::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 4px; }
+    .lv-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 9px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .lv-option:hover { background: rgba(255, 255, 255, 0.07); color: var(--text-primary); }
+    .lv-option.selected { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); font-weight: 600; }
+    .lv-option.selected::after {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent-live);
+      box-shadow: 0 0 6px var(--accent-live);
+      flex-shrink: 0;
+    }
+
+    .export-toast {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 300px;
+      background: rgba(18, 18, 23, 0.92);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 30;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--text-primary);
+      transition: width 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- 左侧导航栏 (参考 Ember 左上角极简裂变球体标志与分层导航设计) -->
+    <aside class="sidebar-nav">
+      <div class="sidebar-top">
+        <div class="brand-header">
+          <div class="brand-group">
+            <!-- 左上角极简纯白斜切球体标志 (Ember 风格) -->
+            <svg class="brand-logo-svg" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="lvCutTop"><polygon points="0,0 36,0 36,7.6 0,28.39" /></clipPath>
+                <clipPath id="lvCutBot"><polygon points="0,28.39 36,7.6 36,36 0,36" /></clipPath>
+              </defs>
+              <!-- 棱角晶片标识：尖顶正六边形沿对角线切分为两块锐利晶片并错位 -->
+              <g transform="translate(-1.5, -0.2)">
+                <polygon clip-path="url(#lvCutTop)" points="18,4 30.12,11 30.12,25 18,32 5.88,25 5.88,11" fill="#F5F5F7" />
+              </g>
+              <g transform="translate(1.5, 0.2)">
+                <polygon clip-path="url(#lvCutBot)" points="18,4 30.12,11 30.12,25 18,32 5.88,25 5.88,11" fill="#F5F5F7" />
+              </g>
+            </svg>
+            <span class="brand-title">LatentVision</span>
+          </div>
+          <span class="brand-badge">2026</span>
+        </div>
+
+        <!-- 实时信号源概览卡 -->
+        <div class="sidebar-source-card">
+          <div class="sidebar-source-row">
+            <span><span class="status-dot-live"></span><span data-i18n="lblLiveEngine">实时引擎</span></span>
+            <span id="nodeFpsText" style="font-family: var(--font-mono); color: var(--text-primary);">60 FPS</span>
+          </div>
+          <div id="sourceLabel" style="font-family: var(--font-mono); font-size: 10.5px; color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            花素材.mp4
+          </div>
+          <span id="nodeSourceText" style="display: none;">640×360</span>
+          <span id="nodeBlobText" style="display: none;">0</span>
+          <span id="nodeShaderText" style="display: none;">none</span>
+        </div>
+
+        <!-- 模块分区导航 (Navigation) -->
+        <div>
+          <div class="nav-section-label" data-i18n="navHeader">功能导航</div>
+          <div class="nav-list" id="moduleNavList">
+            <button type="button" class="nav-item active" data-tab="all">
+              <span class="nav-item-left">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                <span data-i18n="navAll">全部模块</span>
+              </span>
+            </button>
+            <button type="button" class="nav-item" data-tab="region">
+              <span class="nav-item-left">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V5a1 1 0 0 1 1-1h4"/><path d="M15 4h4a1 1 0 0 1 1 1v4"/><path d="M20 15v4a1 1 0 0 1-1 1h-4"/><path d="M9 20H5a1 1 0 0 1-1-1v-4"/></svg>
+                <span data-i18n="navRegion">追踪框与滤镜</span>
+              </span>
+            </button>
+            <button type="button" class="nav-item" data-tab="audio">
+              <span class="nav-item-left">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12h3l3-7 4 14 4-10 3 3h3"/></svg>
+                <span data-i18n="navAudio">声音与律动</span>
+              </span>
+            </button>
+            <button type="button" class="nav-item" data-tab="topology">
+              <span class="nav-item-left">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><path d="M8.5 7.5L10.5 15.5"/><path d="M15.5 7.5L13.5 15.5"/><path d="M9 6h6"/></svg>
+                <span data-i18n="navTopology">连线与色彩</span>
+              </span>
+            </button>
+            <button type="button" class="nav-item" data-tab="detector">
+              <span class="nav-item-left">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+                <span data-i18n="navDetector">检测与数值</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 左下角视觉预设组 (参考 Ember 左下角发光圆点列表) -->
+      <div class="sidebar-bottom">
+        <div class="nav-section-label" data-i18n="presetHeader">视觉预设</div>
+        <div class="preset-group">
+          <button type="button" class="preset-pill active" data-preset="minimal">
+            <span class="preset-pill-left">
+              <span class="preset-dot" style="background: #f4f4f6; box-shadow: 0 0 8px rgba(244,244,246,0.7);"></span>
+              <span data-i18n="presetMinimal">纯白极简</span>
+            </span>
+            <span class="preset-tag" data-i18n="tagMinimal">经典</span>
+          </button>
+          <button type="button" class="preset-pill" data-preset="thermal">
+            <span class="preset-pill-left">
+              <span class="preset-dot" style="background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.7);"></span>
+              <span data-i18n="presetThermal">热成像感应</span>
+            </span>
+            <span class="preset-tag" data-i18n="tagThermal">红外</span>
+          </button>
+          <button type="button" class="preset-pill" data-preset="xray">
+            <span class="preset-pill-left">
+              <span class="preset-dot" style="background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.7);"></span>
+              <span data-i18n="presetXray">雷达透视</span>
+            </span>
+            <span class="preset-tag" data-i18n="tagXray">星型</span>
+          </button>
+          <button type="button" class="preset-pill" data-preset="glitch">
+            <span class="preset-pill-left">
+              <span class="preset-dot" style="background: #f472b6; box-shadow: 0 0 8px rgba(244,114,182,0.7);"></span>
+              <span data-i18n="presetGlitch">赛博标签</span>
+            </span>
+            <span class="preset-tag" data-i18n="tagGlitch">故障</span>
+          </button>
+          <button type="button" class="preset-pill" data-preset="audiorave" id="presetAudioRaveBtn">
+            <span class="preset-pill-left">
+              <span class="preset-dot" style="background: #38bdf8; box-shadow: 0 0 8px rgba(56,189,248,0.8);"></span>
+              <span data-i18n="presetAudioRave">音画律动</span>
+            </span>
+            <span class="preset-tag" data-i18n="tagAudioRave">声学</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 右侧主区域 -->
+    <div class="main-area">
+      <!-- 顶部工作台标题栏 -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="topbar-title" data-i18n="brandMainTitle">潜像视觉工作台</span>
+          <span class="topbar-crumb" data-i18n="brandSub">实时拓扑追踪与声学共鸣系统</span>
+        </div>
+
+        <div class="topbar-right">
+          <label class="btn" style="cursor: pointer;">
+            <span data-i18n="btnUpload">导入本地视频</span>
+            <input type="file" id="videoFileInput" accept="video/*" style="display: none;" />
+          </label>
+          <button type="button" class="btn" id="cameraBtn" data-i18n="btnCamera">开启摄像头</button>
+          <button type="button" class="btn" id="recordWebmBtn" data-i18n="btnRecordWebm">录制实时视频</button>
+          <button type="button" class="btn btn-apple-primary" id="exportMp4Btn" data-i18n="btnExportMp4">导出高清视频</button>
+
+          <!-- 多语言切换器 (中文 / EN / 日本語) -->
+          <div class="lang-switcher" id="langSwitcher">
+            <button type="button" class="lang-btn active" data-lang="zh">中文</button>
+            <button type="button" class="lang-btn" data-lang="en">EN</button>
+            <button type="button" class="lang-btn" data-lang="ja">日本語</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- 顶部三联实时遥测与 Ember 多彩流光波形卡片 -->
+      <section class="metrics-strip">
+        <div class="metric-card">
+          <div class="metric-card-head">
+            <span data-i18n="hudTargets">当前追踪目标</span>
+            <span class="metric-badge" id="hudFps">60 FPS</span>
+          </div>
+          <div class="metric-value-row">
+            <span class="metric-big-num" id="hudTargets">0</span>
+            <span class="metric-sub-info" data-i18n="hudTargetsUnit">活跃连通域</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-card-head">
+            <span data-i18n="hudArea">平均包络面积</span>
+            <span style="font-family: var(--font-mono); font-size: 10.5px; color: var(--text-tertiary);">px²</span>
+          </div>
+          <div class="metric-value-row">
+            <span class="metric-big-num" id="hudArea">0.0</span>
+            <span class="metric-sub-info" data-i18n="hudAreaUnit">空间响应均值</span>
+          </div>
+        </div>
+
+        <div class="metric-card wave-card">
+          <div class="metric-card-head" style="margin-bottom: 2px;">
+            <span data-i18n="hudWaveTitle">多频段声学与拓扑共振波谱</span>
+            <span id="audioSourceLabel" style="font-family: var(--font-mono); font-size: 10.5px; color: var(--accent-td); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px;">
+              原视频自带音轨
+            </span>
+          </div>
+          <canvas id="chopCanvas" width="520" height="44"></canvas>
+        </div>
+      </section>
+
+      <!-- 主工作区：中央画布舞台 + 右侧控制面板 -->
+      <main class="workspace">
+        <!-- 中央主画布舞台 -->
+        <section class="viewport-stage" id="viewportStage">
+          <div class="corner-mark cm-tl"></div>
+          <div class="corner-mark cm-tr"></div>
+          <div class="corner-mark cm-bl"></div>
+          <div class="corner-mark cm-br"></div>
+
+          <video id="sourceVideo" crossorigin="anonymous" loop muted playsinline autoplay style="display: none;"></video>
+          <canvas id="webglCanvas" style="display: none;"></canvas>
+
+          <div class="canvas-wrap">
+            <canvas id="mainCanvas" width="640" height="360"></canvas>
+          </div>
+
+          <!-- 右上角渲染进度浮层 -->
+          <div class="export-toast" id="exportToast">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600;">
+              <span id="toastTitle">正在渲染高清视频...</span>
+              <span id="toastPct" style="font-family: var(--font-mono);">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="toastBar"></div>
+            </div>
+            <div id="toastSub" style="font-size: 11px; color: var(--text-secondary);">正在同步实时参数并编码音画轨道</div>
+          </div>
+
+          <!-- 底部悬浮工具条 -->
+          <div class="floating-dock">
+            <button type="button" class="dock-btn" id="playPauseBtn" data-i18n="btnPause">暂停</button>
+            <div class="dock-divider"></div>
+            <span class="dock-timecode" id="timecodeText">00:00.00</span>
+            <div class="dock-divider"></div>
+            <select class="dock-select" id="speedSelect">
+              <option value="0.5">0.5×</option>
+              <option value="1" selected>1.0×</option>
+              <option value="2">2.0×</option>
+            </select>
+            <div class="dock-divider"></div>
+            <button type="button" class="dock-btn" id="roiToggleBtn" data-i18n="btnRoi">区域框选</button>
+            <button type="button" class="dock-btn" id="clearRoiBtn" style="display: none; color: var(--accent-warn);" data-i18n="btnClearRoi">清除框选</button>
+            <button type="button" class="dock-btn" id="randomBtn" data-i18n="btnRandom">随机参数</button>
+            <button type="button" class="dock-btn" id="snapBtn" data-i18n="btnSnap">截取画面</button>
+            <a id="downloadReadyBtn" class="dock-btn" style="display: none; color: var(--accent-live); font-weight: 600;" download data-i18n="btnDownloadReady">
+              下载视频
+            </a>
+          </div>
+        </section>
+
+        <!-- 右侧参数面板 (纯净中文 / 纯净日文 / 纯净英文，无冗余混排英文) -->
+        <aside class="inspector" id="inspectorPanel">
+          <!-- 模块 1: 几何形状与局部区域滤镜 -->
+          <div class="op-card" data-section="region">
+            <div class="op-header">
+              <span class="op-title" data-i18n="op3Title">追踪框与区域滤镜</span>
+              <span class="op-code" data-i18n="op3Badge">局部渲染</span>
+            </div>
+
+            <div class="toggle-row">
+              <span data-i18n="lblShowBox" style="font-weight: 600; color: #f5f5f7;">显示追踪框</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="show_box" checked />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+
+            <div class="field">
+              <div class="field-label"><span data-i18n="lblShape">几何包络形状</span></div>
+              <div class="segmented" id="shapeSegmented">
+                <button type="button" class="seg-btn active" data-val="square" data-i18n="shapeSquare">方框</button>
+                <button type="button" class="seg-btn" data-val="rect" data-i18n="shapeRect">自适应框</button>
+                <button type="button" class="seg-btn" data-val="circle" data-i18n="shapeCircle">圆形</button>
+                <button type="button" class="seg-btn" data-val="particle" data-i18n="shapeParticle">粒子场</button>
+                <button type="button" class="seg-btn" data-val="cross" data-i18n="shapeCross">十字</button>
+              </div>
+              <input type="hidden" id="shape" value="square" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <div class="field-label"><span data-i18n="lblHudStyle">边框视觉样式</span></div>
+                <select id="region_style">
+                  <option value="l_frame" selected data-i18n="stLFrame">四角折线框</option>
+                  <option value="basic" data-i18n="stBasic">极简实线框</option>
+                  <option value="frame" data-i18n="stFrame">顶点锚点框</option>
+                  <option value="x_frame" data-i18n="stXFrame">对角交叉框</option>
+                  <option value="label" data-i18n="stLabel">顶部信息标签</option>
+                  <option value="label2" data-i18n="stLabel2">悬浮信息标签</option>
+                  <option value="scope" data-i18n="stScope">雷达准星刻度</option>
+                  <option value="grid" data-i18n="stGrid">扫描网格线</option>
+                  <option value="dash" data-i18n="stDash">动态流动虚线</option>
+                  <option value="win2k" data-i18n="stWin2k">复古系统弹窗</option>
+                  <option value="glow" data-i18n="stGlow">霓虹辉光外框</option>
+                  <option value="particle" data-i18n="stParticle">环绕粒子轨迹</option>
+                  <option value="cross" data-i18n="stCross">中心十字准星</option>
+                </select>
+              </div>
+              <div class="field">
+                <div class="field-label"><span data-i18n="lblFilter">框内视觉滤镜</span></div>
+                <select id="filter_effect">
+                  <option value="none" selected data-i18n="fltNone">原画透明</option>
+                  <option value="thermal" data-i18n="fltThermal">热成像感应</option>
+                  <option value="invert" data-i18n="fltInvert">负片反色</option>
+                  <option value="glitch" data-i18n="fltGlitch">故障错位色散</option>
+                  <option value="pixel" data-i18n="fltPixel">像素马赛克</option>
+                  <option value="dither" data-i18n="fltDither">有序矩阵抖动</option>
+                  <option value="xray" data-i18n="fltXray">骨骼透视显影</option>
+                  <option value="edge" data-i18n="fltEdge">边缘轮廓发光</option>
+                  <option value="crt" data-i18n="fltCrt">曲面扫描线</option>
+                  <option value="water" data-i18n="fltWater">水波纹折射</option>
+                  <option value="tone" data-i18n="fltTone">主题色调染色</option>
+                  <option value="mask" data-i18n="fltMask">纯色块遮罩</option>
+                  <option value="blur" data-i18n="fltBlur">柔和模糊</option>
+                  <option value="zoom" data-i18n="fltZoom">二倍光学放大</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="toggle-row">
+              <span data-i18n="lblInvertMask">反转遮罩区域</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="invert_mask" />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblBlink">高频脉冲闪烁</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="region_blink" />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 模块 2: 音频节奏可视化 -->
+          <div class="op-card" data-section="audio">
+            <div class="op-header">
+              <span class="op-title" data-i18n="opAudioTitle">音频节奏可视化</span>
+              <span class="op-code" data-i18n="opAudioBadge">声学瞬态</span>
+            </div>
+
+            <div class="action-grid">
+              <button type="button" class="btn" id="liveAudioBtn" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" data-i18n="btnLiveAudio">接入电脑音乐</button>
+              <label class="btn" style="cursor: pointer;">
+                <span data-i18n="btnUploadAudio">导入音乐文件</span>
+                <input type="file" id="audioFileInput" accept="audio/*,.mp3,.wav,.flac,.m4a,.ogg,.aac" style="display: none;" />
+              </label>
+            </div>
+
+            <div class="field">
+              <div class="field-label"><span data-i18n="lblAudioInputMode">音频输入源</span></div>
+              <select id="audioInputMode">
+                <option value="video_audio" selected data-i18n="audModeVideo">原视频自带音轨</option>
+                <option value="display_audio" data-i18n="audModeDisplay">共享网页或窗口音频</option>
+                <option value="live_mic" data-i18n="audModeMic">电脑外放拾音与内录</option>
+                <option value="synth_beat" data-i18n="audModeSynth">内置电子节拍发生器</option>
+              </select>
+            </div>
+
+            <!-- 实时低音/中音/高音 三频段能量指示条 -->
+            <div style="display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.34); padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-hairline);">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 10.5px;">
+                <span style="width: 38px; color: #38bdf8;" data-i18n="bandBass">低频</span>
+                <div style="flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden;">
+                  <div id="meterBass" style="width: 0%; height: 100%; background: #38bdf8; transition: width 0.04s linear;"></div>
+                </div>
+                <span id="valBass" style="width: 30px; text-align: right; font-family: var(--font-mono); color: var(--text-secondary);">0%</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 10.5px;">
+                <span style="width: 38px; color: #34d399;" data-i18n="bandMid">中频</span>
+                <div style="flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden;">
+                  <div id="meterMid" style="width: 0%; height: 100%; background: #34d399; transition: width 0.04s linear;"></div>
+                </div>
+                <span id="valMid" style="width: 30px; text-align: right; font-family: var(--font-mono); color: var(--text-secondary);">0%</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 10.5px;">
+                <span style="width: 38px; color: #fbbf24;" data-i18n="bandHigh">高频</span>
+                <div style="flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden;">
+                  <div id="meterHigh" style="width: 0%; height: 100%; background: #fbbf24; transition: width 0.04s linear;"></div>
+                </div>
+                <span id="valHigh" style="width: 30px; text-align: right; font-family: var(--font-mono); color: var(--text-secondary);">0%</span>
+              </div>
+            </div>
+
+            <div class="toggle-row">
+              <span data-i18n="lblAudioReactive" style="font-weight: 600; color: #f5f5f7;">启用声音可视化</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="audio_reactive" />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                <span data-i18n="lblAudioGain">音频灵敏度</span>
+                <span class="mono-val" id="audioGainVal">1.0×</span>
+              </div>
+              <input type="range" id="audio_gain" min="0.2" max="3.5" step="0.1" value="1.0" />
+            </div>
+
+            <div class="toggle-row">
+              <span data-i18n="lblAudioFlash">重低音画面閃光</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="audio_flash" checked />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblAudioChromatic">追踪框内与周围色差</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="audio_chromatic" checked />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblAudioZoom">低音镜头推拉</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="audio_bass_zoom" checked />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblAudioBounce">方框节奏弹跳</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="audio_box_bounce" checked />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblAudioWave">线条声波共振</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="audio_line_wave" checked />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblAudioSpecHud">底部频谱显示</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="audio_spectrum_hud" checked />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 模块 3: 拓扑连线与色彩 -->
+          <div class="op-card" data-section="topology">
+            <div class="op-header">
+              <span class="op-title" data-i18n="op4Title">拓扑连线与色彩</span>
+              <span class="op-code" data-i18n="op4Badge">网络结构</span>
+            </div>
+
+            <div class="field">
+              <div class="field-label"><span data-i18n="lblLineStyle">连线路径形态</span></div>
+              <div class="segmented" id="lineSegmented">
+                <button type="button" class="seg-btn active" data-val="straight" data-i18n="lineStraight">直线</button>
+                <button type="button" class="seg-btn" data-val="lightning" data-i18n="lineLightning">折线</button>
+                <button type="button" class="seg-btn" data-val="curve" data-i18n="lineCurve">弧线</button>
+                <button type="button" class="seg-btn" data-val="snake" data-i18n="lineSnake">波浪线</button>
+              </div>
+              <input type="hidden" id="line_style" value="straight" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <div class="field-label">
+                  <span data-i18n="lblLineNum">连线密度</span>
+                  <span class="mono-val" id="lineNumVal">0.45</span>
+                </div>
+                <input type="range" id="line_num" min="0" max="1" step="0.05" value="0.45" />
+              </div>
+              <div class="field">
+                <div class="field-label">
+                  <span data-i18n="lblStroke">线条粗细</span>
+                  <span class="mono-val" id="strokeVal">1.5 px</span>
+                </div>
+                <input type="range" id="stroke_width" min="1" max="4" step="0.5" value="1.5" />
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-label"><span data-i18n="lblColor">视觉主题色</span></div>
+              <div class="color-bar">
+                <div class="swatch-list" id="swatchList">
+                  <div class="swatch active" data-color="#FFFFFF" style="background: #FFFFFF;"></div>
+                  <div class="swatch" data-color="#38BDF8" style="background: #38BDF8;"></div>
+                  <div class="swatch" data-color="#34D399" style="background: #34D399;"></div>
+                  <div class="swatch" data-color="#FBBF24" style="background: #FBBF24;"></div>
+                  <div class="swatch" data-color="#FB7185" style="background: #FB7185;"></div>
+                </div>
+                <div class="color-custom">
+                  <input type="color" id="colorPicker" value="#ffffff" />
+                  <input type="text" class="color-hex-input" id="colorHex" value="#FFFFFF" />
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-row">
+              <span data-i18n="lblCenterHub">中心星型辐射连接</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="use_center_as_hub" />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblDashed">工程虚线描边</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="is_dashed_line" />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblCrazyColor">随机多通道色彩</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="crazy_color" />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 模块 4: 方框数值显示 -->
+          <div class="op-card" data-section="detector">
+            <div class="op-header">
+              <span class="op-title" data-i18n="op2Title">方框数值显示</span>
+              <span class="op-code" data-i18n="op2Badge">实时遥测</span>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblShowText">在追踪方框中显示实时数值</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="show_text" checked />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+
+            <div class="field">
+              <div class="field-label"><span data-i18n="lblTextPos">数值显示位置</span></div>
+              <div class="segmented" id="posSegmented">
+                <button type="button" class="seg-btn active" data-val="center" data-i18n="posCenter">框正中</button>
+                <button type="button" class="seg-btn" data-val="inside_tl" data-i18n="posInside">框内左上</button>
+                <button type="button" class="seg-btn" data-val="top" data-i18n="posTop">框上方</button>
+                <button type="button" class="seg-btn" data-val="bottom" data-i18n="posBottom">框下方</button>
+              </div>
+              <input type="hidden" id="text_position" value="center" />
+            </div>
+
+            <div class="field">
+              <div class="field-label"><span data-i18n="lblTextType">数值内容格式</span></div>
+              <select id="text_content_type">
+                <option value="dynamic" selected data-i18n="txtDynamic">动态传感数值</option>
+                <option value="audio_db" data-i18n="txtAudioDb">实时音频分贝与频率</option>
+                <option value="size" data-i18n="txtSize">斑点实时面积</option>
+                <option value="id_score" data-i18n="txtIdScore">目标编号与置信度</option>
+                <option value="position" data-i18n="txtPos">实时平面坐标</option>
+                <option value="random" data-i18n="txtRandom">固定哈希编码</option>
+                <option value="count" data-i18n="txtCount">画面目标总数</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                <span data-i18n="lblFontSize">数值字号大小</span>
+                <span class="mono-val" id="fontSizeVal">12 px</span>
+              </div>
+              <input type="range" id="font_size" min="10" max="24" step="1" value="12" />
+            </div>
+          </div>
+
+          <!-- 模块 5: 连通域检测阈值与数量控制 -->
+          <div class="op-card" data-section="detector">
+            <div class="op-header">
+              <span class="op-title" data-i18n="op5Title">连通域检测器</span>
+              <span class="op-code" data-i18n="op5Badge">特征分割</span>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                <span data-i18n="lblThreshold">亮度分割阈值</span>
+                <span class="mono-val" id="threshVal">128</span>
+              </div>
+              <input type="range" id="threshold" min="20" max="240" step="1" value="128" />
+            </div>
+
+            <div class="field">
+              <div class="field-label"><span data-i18n="lblFilterMode">斑点筛选策略</span></div>
+              <div class="segmented" id="filterModeSegmented">
+                <button type="button" class="seg-btn active" data-val="size" data-i18n="modeBySize">按最小面积</button>
+                <button type="button" class="seg-btn" data-val="count" data-i18n="modeByCount">按前序数量</button>
+              </div>
+              <input type="hidden" id="blob_threshold_by_count" value="false" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <div class="field-label"><span data-i18n="lblMaxSize">最大包络尺寸</span></div>
+                <select id="blob_size">
+                  <option value="64">64 px</option>
+                  <option value="128" selected>128 px</option>
+                  <option value="256">256 px</option>
+                  <option value="512">512 px</option>
+                </select>
+              </div>
+              <div class="field" id="minAreaField">
+                <div class="field-label"><span data-i18n="lblMinArea">最小面积阈值</span></div>
+                <select id="blob_size_threshold">
+                  <option value="16">16 px²</option>
+                  <option value="32">32 px²</option>
+                  <option value="64" selected>64 px²</option>
+                  <option value="128">128 px²</option>
+                  <option value="256">256 px²</option>
+                </select>
+              </div>
+              <div class="field" id="maxCountField" style="display: none;">
+                <div class="field-label">
+                  <span data-i18n="lblMaxCount">保留最大数量</span>
+                  <span class="mono-val" id="blobCountVal">15</span>
+                </div>
+                <input type="range" id="blob_count_threshold" min="1" max="50" step="1" value="15" />
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-label">
+                <span data-i18n="lblFrameSkip">跳帧步进保持</span>
+                <span class="mono-val" id="frameSkipVal">0</span>
+              </div>
+              <input type="range" id="frame_skip" min="0" max="8" step="1" value="0" />
+            </div>
+
+            <div class="toggle-row">
+              <span data-i18n="lblSameSize">统一固定方框尺寸</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="same_size_enabled" />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span data-i18n="lblSingleTrack">单目标平滑游走模式</span>
+              <label class="ios-switch">
+                <input type="checkbox" id="single_tracking_mode" />
+                <span class="ios-slider"></span>
+              </label>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. 多语言字典 (中文 / English / 日本語) 与实时切换器
+    // =========================================================================
+    const I18N = {
+      zh: {
+        brandMainTitle: "潜像视觉工作台",
+        brandSub: "实时拓扑追踪与声学共鸣系统",
+        lblLiveEngine: "实时引擎",
+        navHeader: "功能导航",
+        navAll: "全部模块",
+        navAudio: "声音与律动",
+        navRegion: "追踪框与滤镜",
+        navTopology: "连线与色彩",
+        navDetector: "检测与数值",
+        presetHeader: "视觉预设",
+        presetMinimal: "纯白极简",
+        tagMinimal: "经典",
+        presetThermal: "热成像感应",
+        tagThermal: "红外",
+        presetXray: "雷达透视",
+        tagXray: "星型",
+        presetGlitch: "赛博标签",
+        tagGlitch: "故障",
+        presetAudioRave: "音画律动",
+        tagAudioRave: "声学",
+        hudTargets: "当前追踪目标",
+        hudTargetsUnit: "活跃连通域",
+        hudArea: "平均包络面积",
+        hudAreaUnit: "空间响应均值",
+        hudWaveTitle: "多频段声学与拓扑共振波谱",
+        btnPause: "暂停",
+        btnPlay: "播放",
+        btnRoi: "区域框选",
+        btnRoiDrawing: "拖拽画面框选...",
+        btnClearRoi: "清除框选",
+        btnRandom: "随机参数",
+        btnSnap: "截取画面",
+        btnDownloadReady: "下载视频",
+        op1Title: "输入源与导出",
+        btnUpload: "导入本地视频",
+        btnCamera: "开启摄像头",
+        btnCameraStop: "关闭摄像头",
+        btnExportMp4: "导出高清视频",
+        btnRecordWebm: "录制实时视频",
+        btnRecordStop: "停止并保存",
+        opAudioTitle: "音频节奏可视化",
+        opAudioBadge: "声学瞬态",
+        btnLiveAudio: "接入电脑音乐",
+        btnLiveAudioStop: "断开实时音频",
+        btnUploadAudio: "导入音乐文件",
+        lblAudioInputMode: "音频输入源",
+        audModeVideo: "原视频自带音轨",
+        audModeMic: "电脑外放拾音与内录",
+        audModeDisplay: "共享网页或窗口音频",
+        audModeSynth: "内置电子节拍发生器",
+        bandBass: "低频",
+        bandMid: "中频",
+        bandHigh: "高频",
+        lblAudioReactive: "启用声音可视化",
+        lblAudioGain: "音频灵敏度",
+        lblAudioFlash: "重低音画面闪光",
+        lblAudioChromatic: "追踪框内与周围色差",
+        lblAudioZoom: "低音镜头推拉",
+        lblAudioBounce: "方框节奏弹跳",
+        lblAudioWave: "线条声波共振",
+        lblAudioSpecHud: "底部频谱显示",
+        txtAudioDb: "实时音频分贝与频率",
+        op2Title: "方框数值显示",
+        op2Badge: "实时遥测",
+        lblShowText: "在追踪方框中显示实时数值",
+        lblTextPos: "数值显示位置",
+        posCenter: "框正中",
+        posInside: "框内左上",
+        posTop: "框上方",
+        posBottom: "框下方",
+        lblTextType: "数值内容格式",
+        txtDynamic: "动态传感数值",
+        txtSize: "斑点实时面积",
+        txtIdScore: "目标编号与置信度",
+        txtPos: "实时平面坐标",
+        txtRandom: "固定哈希编码",
+        txtCount: "画面目标总数",
+        lblFontSize: "数值字号大小",
+        op3Title: "追踪框与区域滤镜",
+        op3Badge: "局部渲染",
+        lblShowBox: "显示追踪框",
+        lblShape: "几何包络形状",
+        shapeSquare: "方框",
+        shapeRect: "自适应框",
+        shapeCircle: "圆形",
+        shapeParticle: "粒子场",
+        shapeCross: "十字",
+        lblHudStyle: "边框视觉样式",
+        stLFrame: "四角折线框",
+        stBasic: "极简实线框",
+        stFrame: "顶点锚点框",
+        stXFrame: "对角交叉框",
+        stLabel: "顶部信息标签",
+        stLabel2: "悬浮信息标签",
+        stScope: "雷达准星刻度",
+        stGrid: "扫描网格线",
+        stDash: "动态流动虚线",
+        stWin2k: "复古系统弹窗",
+        stGlow: "霓虹辉光外框",
+        stParticle: "环绕粒子轨迹",
+        stCross: "中心十字准星",
+        lblFilter: "框内视觉滤镜",
+        fltNone: "原画透明",
+        fltThermal: "热成像感应",
+        fltInvert: "负片反色",
+        fltGlitch: "故障错位色散",
+        fltPixel: "像素马赛克",
+        fltDither: "有序矩阵抖动",
+        fltXray: "骨骼透视显影",
+        fltEdge: "边缘轮廓发光",
+        fltCrt: "曲面扫描线",
+        fltWater: "水波纹折射",
+        fltTone: "主题色调染色",
+        fltMask: "纯色块遮罩",
+        fltBlur: "柔和模糊",
+        fltZoom: "二倍光学放大",
+        lblInvertMask: "反转遮罩区域",
+        lblBlink: "高频脉冲闪烁",
+        op4Title: "拓扑连线与色彩",
+        op4Badge: "网络结构",
+        lblLineStyle: "连线路径形态",
+        lineStraight: "直线",
+        lineLightning: "折线",
+        lineCurve: "弧线",
+        lineSnake: "波浪线",
+        lblLineNum: "连线密度",
+        lblStroke: "线条粗细",
+        lblColor: "视觉主题色",
+        lblCenterHub: "中心星型辐射连接",
+        lblDashed: "工程虚线描边",
+        lblCrazyColor: "随机多通道色彩",
+        op5Title: "连通域检测器",
+        op5Badge: "特征分割",
+        lblThreshold: "亮度分割阈值",
+        lblFilterMode: "斑点筛选策略",
+        modeBySize: "按最小面积",
+        modeByCount: "按前序数量",
+        lblMaxSize: "最大包络尺寸",
+        lblMinArea: "最小面积阈值",
+        lblMaxCount: "保留最大数量",
+        lblFrameSkip: "跳帧步进保持",
+        lblSameSize: "统一固定方框尺寸",
+        lblSingleTrack: "单目标平滑游走模式",
+        toastRendering: "正在渲染高清视频...",
+        toastSyncing: "正在同步当前实时参数并编码...",
+        toastDone: "渲染完成",
+        toastAutoDl: "已触发浏览器自动下载",
+        toastErr: "渲染出错"
+      },
+      en: {
+        brandMainTitle: "LatentVision Studio",
+        brandSub: "Real-Time Topology & Synesthetic Audio Engine",
+        lblLiveEngine: "Live Engine",
+        navHeader: "Navigation",
+        navAll: "All Modules",
+        navAudio: "Audio & Rhythm",
+        navRegion: "Box & Shader",
+        navTopology: "Topology & Color",
+        navDetector: "Detector & Data",
+        presetHeader: "Presets",
+        presetMinimal: "Minimal White",
+        tagMinimal: "Classic",
+        presetThermal: "Thermal Vision",
+        tagThermal: "Infrared",
+        presetXray: "Radar Scope",
+        tagXray: "Radial",
+        presetGlitch: "Cyber Label",
+        tagGlitch: "Glitch",
+        presetAudioRave: "Audio Rave",
+        tagAudioRave: "Synesthetic",
+        hudTargets: "Active Targets",
+        hudTargetsUnit: "Connected Blobs",
+        hudArea: "Average Area",
+        hudAreaUnit: "Spatial Mean",
+        hudWaveTitle: "Multi-Band Acoustic & Topology Resonance Waves",
+        btnPause: "Pause",
+        btnPlay: "Play",
+        btnRoi: "Region Crop",
+        btnRoiDrawing: "Drag on video...",
+        btnClearRoi: "Clear Crop",
+        btnRandom: "Randomize",
+        btnSnap: "Snapshot",
+        btnDownloadReady: "Download Video",
+        op1Title: "Source & Export",
+        btnUpload: "Import Video",
+        btnCamera: "Open Camera",
+        btnCameraStop: "Stop Camera",
+        btnExportMp4: "Export HD Video",
+        btnRecordWebm: "Record Live Video",
+        btnRecordStop: "Stop & Save",
+        opAudioTitle: "Audio Visualizer",
+        opAudioBadge: "Transient",
+        btnLiveAudio: "Connect Audio",
+        btnLiveAudioStop: "Disconnect Audio",
+        btnUploadAudio: "Import Music",
+        lblAudioInputMode: "Audio Input Source",
+        audModeVideo: "Original Video Track",
+        audModeMic: "Speaker / Loopback Input",
+        audModeDisplay: "Shared Tab / Window Audio",
+        audModeSynth: "Built-in Synth Beat",
+        bandBass: "Bass",
+        bandMid: "Mid",
+        bandHigh: "High",
+        lblAudioReactive: "Enable Audio Reactive",
+        lblAudioGain: "Audio Sensitivity",
+        lblAudioFlash: "Bass Screen Strobe",
+        lblAudioChromatic: "Box & Halo Chromatic Split",
+        lblAudioZoom: "Bass Camera Zoom",
+        lblAudioBounce: "Box Rhythm Bounce",
+        lblAudioWave: "Soundwave Lines",
+        lblAudioSpecHud: "Bottom Spectrum Bar",
+        txtAudioDb: "Live Audio Decibel & Pitch",
+        op2Title: "Telemetry Readout",
+        op2Badge: "Readout",
+        lblShowText: "Show Live Value in Box",
+        lblTextPos: "Value Position",
+        posCenter: "Center",
+        posInside: "Top Left",
+        posTop: "Above",
+        posBottom: "Below",
+        lblTextType: "Data Format",
+        txtDynamic: "Dynamic Sensor Value",
+        txtSize: "Live Blob Area",
+        txtIdScore: "Target ID & Confidence",
+        txtPos: "Planar Coordinates",
+        txtRandom: "Static Hash Code",
+        txtCount: "Total Target Count",
+        lblFontSize: "Font Size",
+        op3Title: "Bounding Box & Shader",
+        op3Badge: "Regional",
+        lblShowBox: "Show Tracking Box",
+        lblShape: "Bounding Geometry",
+        shapeSquare: "Square",
+        shapeRect: "Auto Rect",
+        shapeCircle: "Circle",
+        shapeParticle: "Particles",
+        shapeCross: "Crosshair",
+        lblHudStyle: "Border Vector Style",
+        stLFrame: "Corner Brackets",
+        stBasic: "Solid Outline",
+        stFrame: "Vertex Anchors",
+        stXFrame: "Diagonal Cross",
+        stLabel: "Top Header Tag",
+        stLabel2: "Floating Tag",
+        stScope: "Radar Reticle",
+        stGrid: "Scanline Grid",
+        stDash: "Marching Ants",
+        stWin2k: "Retro Dialog",
+        stGlow: "Neon Outer Glow",
+        stParticle: "Orbiting Particles",
+        stCross: "Center Crosshair",
+        lblFilter: "Regional Filter",
+        fltNone: "Original Transparent",
+        fltThermal: "Thermal Heatmap",
+        fltInvert: "Invert Negative",
+        fltGlitch: "Glitch Dispersion",
+        fltPixel: "Pixel Mosaic",
+        fltDither: "Ordered Dithering",
+        fltXray: "X-Ray Radiograph",
+        fltEdge: "Luminous Edge",
+        fltCrt: "Curved Scanline",
+        fltWater: "Water Refraction",
+        fltTone: "Theme Color Tint",
+        fltMask: "Solid Color Mask",
+        fltBlur: "Soft Blur",
+        fltZoom: "Optical 2× Zoom",
+        lblInvertMask: "Invert Mask Region",
+        lblBlink: "High-Freq Pulse Blink",
+        op4Title: "Topology & Color",
+        op4Badge: "Network",
+        lblLineStyle: "Connection Routing",
+        lineStraight: "Straight",
+        lineLightning: "Polygonal",
+        lineCurve: "Arc Curve",
+        lineSnake: "Sine Wave",
+        lblLineNum: "Connection Density",
+        lblStroke: "Stroke Width",
+        lblColor: "Theme Accent Color",
+        lblCenterHub: "Center Star Hub Topology",
+        lblDashed: "Technical Dashed Stroke",
+        lblCrazyColor: "Multi-Channel Random Color",
+        op5Title: "Connected Blob Detector",
+        op5Badge: "Segmentation",
+        lblThreshold: "Luminance Threshold",
+        lblFilterMode: "Selection Strategy",
+        modeBySize: "By Min Area",
+        modeByCount: "By Top Count",
+        lblMaxSize: "Max Bound Size",
+        lblMinArea: "Min Area Threshold",
+        lblMaxCount: "Max Target Count",
+        lblFrameSkip: "Frame Skip Hold",
+        lblSameSize: "Uniform Box Size",
+        lblSingleTrack: "Single Target Wander",
+        toastRendering: "Rendering HD Video...",
+        toastSyncing: "Syncing live parameters & audio track...",
+        toastDone: "Export Completed",
+        toastAutoDl: "Download started automatically",
+        toastErr: "Export Failed"
+      },
+      ja: {
+        brandMainTitle: "潜像視覚スタジオ",
+        brandSub: "リアルタイムトポロジー追跡・音響共鳴システム",
+        lblLiveEngine: "稼働中",
+        navHeader: "機能メニュー",
+        navAll: "すべての項目",
+        navAudio: "音響とリズム",
+        navRegion: "追跡枠とフィルタ",
+        navTopology: "接続線と色彩",
+        navDetector: "検出器と数値",
+        presetHeader: "視覚プリセット",
+        presetMinimal: "純白ミニマル",
+        tagMinimal: "定番",
+        presetThermal: "サーマル熱感知",
+        tagThermal: "赤外線",
+        presetXray: "レーダー透視",
+        tagXray: "放射状",
+        presetGlitch: "サイバータグ",
+        tagGlitch: "グリッチ",
+        presetAudioRave: "音響リズム連動",
+        tagAudioRave: "共感覚",
+        hudTargets: "現在の追跡対象数",
+        hudTargetsUnit: "活性連結領域",
+        hudArea: "平均包絡面積",
+        hudAreaUnit: "空間応答平均",
+        hudWaveTitle: "多帯域音響・トポロジー共鳴波形",
+        btnPause: "一時停止",
+        btnPlay: "再生",
+        btnRoi: "領域指定",
+        btnRoiDrawing: "画面をドラッグして指定...",
+        btnClearRoi: "指定解除",
+        btnRandom: "ランダム生成",
+        btnSnap: "静止画保存",
+        btnDownloadReady: "動画を保存",
+        op1Title: "入力と書き出し",
+        btnUpload: "動画ファイル読込",
+        btnCamera: "カメラ起動",
+        btnCameraStop: "カメラ停止",
+        btnExportMp4: "高画質動画書き出し",
+        btnRecordWebm: "リアルタイム録画",
+        btnRecordStop: "停止して保存",
+        opAudioTitle: "音響リズム視覚化",
+        opAudioBadge: "音響過渡",
+        btnLiveAudio: "パソコン音声を接続",
+        btnLiveAudioStop: "リアルタイム音声を切断",
+        btnUploadAudio: "音楽ファイル読込",
+        lblAudioInputMode: "音声入力ソース",
+        audModeVideo: "動画本来の音声トラック",
+        audModeMic: "スピーカー集音・内部録音",
+        audModeDisplay: "共有タブ・ウィンドウ音声",
+        audModeSynth: "内蔵リズム音源",
+        bandBass: "低音域",
+        bandMid: "中音域",
+        bandHigh: "高音域",
+        lblAudioReactive: "音響視覚化を有効化",
+        lblAudioGain: "音響感度",
+        lblAudioFlash: "重低音ストロボ発光",
+        lblAudioChromatic: "追跡枠内・周辺の色収差",
+        lblAudioZoom: "低音カメラズーム",
+        lblAudioBounce: "追跡枠のリズム弾み",
+        lblAudioWave: "接続線の音波振動",
+        lblAudioSpecHud: "下部スペクトラム表示",
+        txtAudioDb: "リアルタイム音量と周波数",
+        op2Title: "枠内数値表示",
+        op2Badge: "計測表示",
+        lblShowText: "追跡枠内にリアルタイム数値を表示",
+        lblTextPos: "数値の表示位置",
+        posCenter: "枠の中央",
+        posInside: "枠内左上",
+        posTop: "枠の上部",
+        posBottom: "枠の下部",
+        lblTextType: "数値の内容形式",
+        txtDynamic: "動的センサー計測値",
+        txtSize: "領域のリアルタイム面積",
+        txtIdScore: "対象番号と信頼度",
+        txtPos: "リアルタイム平面座標",
+        txtRandom: "固定ハッシュ符号",
+        txtCount: "画面内の対象総数",
+        lblFontSize: "文字の大きさ",
+        op3Title: "追跡枠と領域フィルタ",
+        op3Badge: "局所描画",
+        lblShowBox: "追跡枠を表示",
+        lblShape: "包絡ジオメトリ形状",
+        shapeSquare: "正方形枠",
+        shapeRect: "自動矩形枠",
+        shapeCircle: "円形枠",
+        shapeParticle: "粒子場",
+        shapeCross: "十字線",
+        lblHudStyle: "枠線の視覚スタイル",
+        stLFrame: "四隅カギ括弧枠",
+        stBasic: "極細実線枠",
+        stFrame: "頂点アンカー枠",
+        stXFrame: "対角クロス線枠",
+        stLabel: "上部情報タグ枠",
+        stLabel2: "浮遊情報タグ枠",
+        stScope: "照準レティクル枠",
+        stGrid: "走査グリッド格子",
+        stDash: "動的破線アニメーション",
+        stWin2k: "レトロダイアログ窓",
+        stGlow: "ネオン発光フレーム",
+        stParticle: "周回パーティクル軌道",
+        stCross: "中心クロスヘア",
+        lblFilter: "枠内の映像フィルタ",
+        fltNone: "元映像のまま（透明）",
+        fltThermal: "サーマル熱分布",
+        fltInvert: "ネガポジ階調反転",
+        fltGlitch: "グリッチ色分散",
+        fltPixel: "ピクセルモザイク",
+        fltDither: "規則的ディザ網点",
+        fltXray: "レントゲン骨格透視",
+        fltEdge: "輪郭ネオン発光",
+        fltCrt: "ブラウン管走査線",
+        fltWater: "水面リップル屈折",
+        fltTone: "テーマカラー着色",
+        fltMask: "単色塗りつぶしマスク",
+        fltBlur: "ソフトぼかし",
+        fltZoom: "二倍光学ズーム",
+        lblInvertMask: "マスク領域を反転（背景側に適用）",
+        lblBlink: "高周波パルス点滅",
+        op4Title: "トポロジー接続線と色彩",
+        op4Badge: "ネットワーク",
+        lblLineStyle: "接続ラインの形状",
+        lineStraight: "直線",
+        lineLightning: "折れ線",
+        lineCurve: "アーク曲線",
+        lineSnake: "ウェーブ曲線",
+        lblLineNum: "接続線の密度",
+        lblStroke: "線の太さ",
+        lblColor: "ビジュアルテーマ色",
+        lblCenterHub: "中心ハブからの放射状配線",
+        lblDashed: "製図用破線ストローク",
+        lblCrazyColor: "ランダム多チャンネル配色",
+        op5Title: "連結領域検出器",
+        op5Badge: "領域分割",
+        lblThreshold: "輝度しきい値",
+        lblFilterMode: "領域の抽出基準",
+        modeBySize: "最小面積で抽出",
+        modeByCount: "面積上位の個数で抽出",
+        lblMaxSize: "最大枠サイズ",
+        lblMinArea: "最小面積しきい値",
+        lblMaxCount: "最大保持個数",
+        lblFrameSkip: "フレームスキップ保持",
+        lblSameSize: "枠のサイズを均一に固定",
+        lblSingleTrack: "単一ターゲット平滑遊走モード",
+        toastRendering: "高画質動画をレンダリング中...",
+        toastSyncing: "リアルタイム設定と音声トラックを同期中...",
+        toastDone: "書き出し完了",
+        toastAutoDl: "自動ダウンロードを開始しました",
+        toastErr: "書き出しエラーが発生しました"
+      }
+    };
+
+    let currentLang = localStorage.getItem('bt_lang') || 'zh';
+    const t = (key) => (I18N[currentLang] && I18N[currentLang][key]) || I18N.zh[key] || key;
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('bt_lang', lang);
+      document.documentElement.lang = lang === 'ja' ? 'ja' : (lang === 'en' ? 'en' : 'zh-CN');
+
+      document.querySelectorAll('#langSwitcher .lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (I18N[lang] && I18N[lang][key]) {
+          el.textContent = I18N[lang][key];
+        }
+      });
+
+      const video = document.getElementById('sourceVideo');
+      const playPauseBtn = document.getElementById('playPauseBtn');
+      if (playPauseBtn && video) {
+        playPauseBtn.textContent = video.paused ? t('btnPlay') : t('btnPause');
+      }
+      const liveBtn = document.getElementById('liveAudioBtn');
+      if (liveBtn) {
+        const isLiveActive = Boolean(liveAudioStream || synthInterval);
+        liveBtn.textContent = isLiveActive ? t('btnLiveAudioStop') : t('btnLiveAudio');
+      }
+      if (typeof lvSelects !== 'undefined' && lvSelects.length) syncAllLvSelects();
+      const audLbl = document.getElementById('audioSourceLabel');
+      if (audLbl && isUsingVideoAudio && !liveAudioStream && !synthInterval && !currentAudioFile) {
+        audLbl.textContent = t('audModeVideo');
+      }
+    }
+
+    document.querySelectorAll('#langSwitcher .lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+    });
+
+    // 左侧导航栏模块筛选切换 (全部模块 / 声音与律动 / 追踪框与滤镜 / 连线与色彩 / 检测与数值)
+    document.querySelectorAll('#moduleNavList .nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#moduleNavList .nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const targetTab = btn.dataset.tab;
+        document.querySelectorAll('#inspectorPanel .op-card').forEach(card => {
+          if (targetTab === 'all' || card.dataset.section === targetTab) {
+            card.classList.remove('hidden-by-tab');
+          } else {
+            card.classList.add('hidden-by-tab');
+          }
+        });
+      });
+    });
+
+    // =========================================================================
+    // 2. UI 控件、分段控制器与 ROI 交互框选
+    // =========================================================================
+    const video = document.getElementById('sourceVideo');
+    const mainCanvas = document.getElementById('mainCanvas');
+    const ctx = mainCanvas.getContext('2d');
+    const webglCanvas = document.getElementById('webglCanvas');
+    const maskCanvas = document.createElement('canvas');
+    const maskCtx = maskCanvas.getContext('2d');
+    const detectCanvas = document.createElement('canvas');
+    const detectCtx = detectCanvas.getContext('2d', { willReadFrequently: true });
+    const chopCanvas = document.getElementById('chopCanvas');
+    const chopCtx = chopCanvas.getContext('2d');
+
+    let currentUploadedFile = null;
+    let cameraStream = null;
+    const chopHistory = new Array(60).fill(0);
+    const areaHistory = new Array(60).fill(0);
+
+    // ROI 状态 (归一化 0~1: {x0, y0, x1, y1})
+    let roiMode = false;
+    let roiDragging = false;
+    let roiStart = null;
+    let roiNorm = null;
+
+    const roiToggleBtn = document.getElementById('roiToggleBtn');
+    const clearRoiBtn = document.getElementById('clearRoiBtn');
+
+    roiToggleBtn.addEventListener('click', () => {
+      roiMode = !roiMode;
+      roiToggleBtn.classList.toggle('active-tool', roiMode);
+      mainCanvas.classList.toggle('roi-cursor', roiMode);
+      roiToggleBtn.textContent = roiMode ? t('btnRoiDrawing') : t('btnRoi');
+    });
+
+    clearRoiBtn.addEventListener('click', () => {
+      roiNorm = null;
+      clearRoiBtn.style.display = 'none';
+    });
+
+    function getCanvasNormCoords(e) {
+      const rect = mainCanvas.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+      return { x, y };
+    }
+
+    mainCanvas.addEventListener('mousedown', (e) => {
+      if (!roiMode) return;
+      roiDragging = true;
+      roiStart = getCanvasNormCoords(e);
+      roiNorm = { x0: roiStart.x, y0: roiStart.y, x1: roiStart.x, y1: roiStart.y };
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!roiDragging || !roiStart) return;
+      const cur = getCanvasNormCoords(e);
+      roiNorm = {
+        x0: Math.min(roiStart.x, cur.x),
+        y0: Math.min(roiStart.y, cur.y),
+        x1: Math.max(roiStart.x, cur.x),
+        y1: Math.max(roiStart.y, cur.y)
+      };
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!roiDragging) return;
+      roiDragging = false;
+      roiMode = false;
+      roiToggleBtn.classList.remove('active-tool');
+      mainCanvas.classList.remove('roi-cursor');
+      roiToggleBtn.textContent = t('btnRoi');
+      if (roiNorm && (roiNorm.x1 - roiNorm.x0 > 0.03) && (roiNorm.y1 - roiNorm.y0 > 0.03)) {
+        clearRoiBtn.style.display = 'inline-flex';
+      } else {
+        roiNorm = null;
+        clearRoiBtn.style.display = 'none';
+      }
+    });
+
+    function setupSegmented(containerId, hiddenInputId, onChange) {
+      const container = document.getElementById(containerId);
+      const hidden = document.getElementById(hiddenInputId);
+      const btns = container.querySelectorAll('.seg-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          hidden.value = btn.dataset.val;
+          if (onChange) onChange(btn.dataset.val);
+        });
+      });
+      return (val) => {
+        hidden.value = val;
+        btns.forEach(b => b.classList.toggle('active', b.dataset.val === val));
+        if (onChange) onChange(val);
+      };
+    }
+
+    const setPosSeg = setupSegmented('posSegmented', 'text_position');
+    const setShapeSeg = setupSegmented('shapeSegmented', 'shape');
+    const setLineSeg = setupSegmented('lineSegmented', 'line_style');
+    const setFilterModeSeg = setupSegmented('filterModeSegmented', 'blob_threshold_by_count', (val) => {
+      const byCount = val === 'count';
+      document.getElementById('blob_threshold_by_count').value = byCount ? 'true' : 'false';
+      document.getElementById('minAreaField').style.display = byCount ? 'none' : 'flex';
+      document.getElementById('maxCountField').style.display = byCount ? 'flex' : 'none';
+    });
+
+    const bindSlider = (id, labelId, suffix = '') => {
+      const el = document.getElementById(id);
+      const lbl = document.getElementById(labelId);
+      el.addEventListener('input', () => { lbl.textContent = el.value + suffix; });
+    };
+    bindSlider('font_size', 'fontSizeVal', ' px');
+    bindSlider('line_num', 'lineNumVal', '');
+    bindSlider('stroke_width', 'strokeVal', ' px');
+    bindSlider('threshold', 'threshVal', '');
+    bindSlider('blob_count_threshold', 'blobCountVal', '');
+    bindSlider('frame_skip', 'frameSkipVal', '');
+    bindSlider('audio_gain', 'audioGainVal', '×');
+
+    // =========================================================================
+    // 2B. Web Audio API 高灵敏度瞬态 FFT 引擎 (支持原视频音轨 / 共享网页内录 / 声卡 / 节拍器)
+    // =========================================================================
+    let audioCtx = null;
+    let analyserNode = null;
+    let silentPullGain = null;
+    let freqDataArray = null;
+    let currentAudioFile = null;
+    const bgAudio = new Audio();
+    bgAudio.crossOrigin = 'anonymous';
+    bgAudio.loop = true;
+    let mediaElementSource = null;
+    let bgAudioGainNode = null;
+    let videoElementSource = null;
+    let videoGainNode = null;
+    let isUsingVideoAudio = true;
+    let liveAudioStream = null;
+    let liveStreamSource = null;
+    let liveAudioRecorder = null;
+    let liveAudioChunks = [];
+    let synthInterval = null;
+    let synthStep = 0;
+    let liveBass = 0, liveMid = 0, liveHigh = 0;
+
+    // 差分瞬态鼓点检测 + 向下动态扩展器 (Downward Expander) 状态
+    let agcState = {
+      emaB: 0.04, emaM: 0.03, emaH: 0.02,
+      peakSigB: 0.08, peakSigM: 0.06, peakSigH: 0.04,
+      prevB: 0, prevM: 0, prevH: 0,
+      envB: 0, envM: 0, envH: 0
+    };
+
+    function resetAgcState() {
+      agcState = {
+        emaB: 0.04, emaM: 0.03, emaH: 0.02,
+        peakSigB: 0.08, peakSigM: 0.06, peakSigH: 0.04,
+        prevB: 0, prevM: 0, prevH: 0,
+        envB: 0, envM: 0, envH: 0
+      };
+    }
+
+    function ensureAudioEngine() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AC();
+        analyserNode = audioCtx.createAnalyser();
+        // 2048 点 FFT + 0.16 极速瞬态响应 + 合理的分贝动态窗口 (-78dB ~ -8dB)，防止持续音乐信号顶死峰值
+        analyserNode.fftSize = 2048;
+        analyserNode.smoothingTimeConstant = 0.16;
+        analyserNode.minDecibels = -78;
+        analyserNode.maxDecibels = -8;
+        freqDataArray = new Uint8Array(analyserNode.frequencyBinCount);
+
+        // Chromium MediaStreamAudioSourceNode 必须有通向 destination 的通路才会全速拉取音频帧
+        silentPullGain = audioCtx.createGain();
+        silentPullGain.gain.value = 0.0;
+        analyserNode.connect(silentPullGain);
+        silentPullGain.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      if (!videoElementSource) {
+        try {
+          videoElementSource = audioCtx.createMediaElementSource(video);
+          videoGainNode = audioCtx.createGain();
+          videoGainNode.gain.value = isUsingVideoAudio ? 1.0 : 0.0;
+          videoElementSource.connect(videoGainNode);
+          videoGainNode.connect(analyserNode);
+          videoGainNode.connect(audioCtx.destination);
+        } catch (_) {}
+      }
+    }
+
+    function setVideoAudioActive(active, labelText) {
+      isUsingVideoAudio = active;
+      video.muted = !active;
+      if (videoGainNode && audioCtx) {
+        videoGainNode.gain.setValueAtTime(active ? 1.0 : 0.0, audioCtx.currentTime);
+      }
+      if (active) {
+        ensureAudioEngine();
+        resetAgcState();
+        document.getElementById('audioInputMode').value = 'video_audio';
+        if (labelText) {
+          document.getElementById('audioSourceLabel').textContent = labelText;
+        }
+      }
+    }
+
+    async function refreshAudioDeviceOptions() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const select = document.getElementById('audioInputMode');
+        const currentVal = select.value;
+        Array.from(select.querySelectorAll('option[data-dynamic-dev="1"]')).forEach(opt => opt.remove());
+        const audioInputs = devices.filter(d => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default');
+        audioInputs.forEach((dev, idx) => {
+          const opt = document.createElement('option');
+          opt.value = 'device:' + dev.deviceId;
+          opt.dataset.dynamicDev = '1';
+          opt.textContent = dev.label ? `设备: ${dev.label}` : `音频设备 #${idx + 1}`;
+          select.insertBefore(opt, select.children[2]);
+        });
+        if (Array.from(select.options).some(o => o.value === currentVal)) {
+          select.value = currentVal;
+        }
+      } catch (_) {}
+    }
+
+    function stopLiveAudio() {
+      if (synthInterval) {
+        clearInterval(synthInterval);
+        synthInterval = null;
+      }
+      if (liveAudioRecorder && liveAudioRecorder.state !== 'inactive') {
+        try { liveAudioRecorder.stop(); } catch (_) {}
+      }
+      if (liveStreamSource) {
+        try { liveStreamSource.disconnect(); } catch (_) {}
+        liveStreamSource = null;
+      }
+      if (liveAudioStream) {
+        liveAudioStream.getTracks().forEach(tr => tr.stop());
+        liveAudioStream = null;
+      }
+      const btn = document.getElementById('liveAudioBtn');
+      if (btn) {
+        btn.classList.remove('recording-active');
+        btn.textContent = t('btnLiveAudio');
+      }
+    }
+
+    function startSynthBeat() {
+      ensureAudioEngine();
+      bgAudio.pause();
+      setVideoAudioActive(false);
+      resetAgcState();
+      document.getElementById('audio_reactive').checked = true;
+      document.getElementById('audioSourceLabel').textContent = 'AUD: 128 BPM Synth Beat';
+      const btn = document.getElementById('liveAudioBtn');
+      btn.classList.add('recording-active');
+      btn.textContent = t('btnLiveAudioStop');
+
+      synthStep = 0;
+      synthInterval = setInterval(() => {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const step = synthStep % 16;
+
+        if (step % 4 === 0) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(145, now);
+          osc.frequency.exponentialRampToValueAtTime(38, now + 0.14);
+          gain.gain.setValueAtTime(0.95, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.connect(gain);
+          gain.connect(analyserNode);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.23);
+        }
+
+        if (step % 4 === 2 || step === 7 || step === 15) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          const notes = [110, 146.8, 164.8, 220, 293.6, 329.6];
+          osc.frequency.setValueAtTime(notes[step % notes.length], now);
+          gain.gain.setValueAtTime(0.32, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+          osc.connect(gain);
+          gain.connect(analyserNode);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        }
+
+        if (step % 2 === 1 || step === 14) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(step === 14 ? 9200 : 6800, now);
+          gain.gain.setValueAtTime(step === 14 ? 0.26 : 0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+          osc.connect(gain);
+          gain.connect(analyserNode);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        }
+
+        synthStep++;
+      }, 117);
+    }
+
+    async function connectLiveComputerAudio(forceStart = false) {
+      if (!forceStart && (liveAudioStream || synthInterval)) {
+        stopLiveAudio();
+        setVideoAudioActive(true, 'AUD: 原视频自带音轨');
+        return;
+      }
+      stopLiveAudio();
+      bgAudio.pause();
+      ensureAudioEngine();
+      resetAgcState();
+
+      const mode = document.getElementById('audioInputMode').value;
+      if (mode === 'video_audio') {
+        document.getElementById('audioInputMode').value = 'display_audio';
+      }
+      const activeMode = document.getElementById('audioInputMode').value;
+
+      if (activeMode === 'synth_beat') {
+        startSynthBeat();
+        return;
+      }
+
+      try {
+        let stream = null;
+        if (activeMode === 'display_audio') {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false
+            }
+          });
+          if (stream.getAudioTracks().length === 0) {
+            stream.getTracks().forEach(tr => tr.stop());
+            alert('请在浏览器共享弹窗底部勾选「同时共享标签页音频 / 系统音频」后再点击共享。');
+            return;
+          }
+        } else {
+          const audioConstraints = {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          };
+          if (activeMode.startsWith('device:')) {
+            audioConstraints.deviceId = { exact: activeMode.slice(7) };
+          }
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: audioConstraints,
+            video: false
+          });
+          await refreshAudioDeviceOptions();
+        }
+
+        setVideoAudioActive(false);
+        liveAudioStream = stream;
+        liveStreamSource = audioCtx.createMediaStreamSource(stream);
+        // 1:1 原生动态接入 analyserNode，避免过度前置放大把持续背景伴奏推至满格峰值
+        liveStreamSource.connect(analyserNode);
+
+        // 后台缓存录制的电脑音乐流，方便导出高清 MP4 时一并封装进视频
+        try {
+          const audioOnlyStream = new MediaStream(stream.getAudioTracks());
+          liveAudioChunks = [];
+          liveAudioRecorder = new MediaRecorder(audioOnlyStream);
+          liveAudioRecorder.ondataavailable = (ev) => {
+            if (ev.data && ev.data.size > 0) liveAudioChunks.push(ev.data);
+          };
+          liveAudioRecorder.onstop = () => {
+            if (liveAudioChunks.length > 0) {
+              const blob = new Blob(liveAudioChunks, { type: 'audio/webm' });
+              currentAudioFile = new File([blob], 'pc_live_audio.webm', { type: 'audio/webm' });
+            }
+          };
+          liveAudioRecorder.start(500);
+        } catch (_) {}
+
+        const trackLabel = (stream.getAudioTracks()[0] && stream.getAudioTracks()[0].label) || '电脑实时音乐';
+        document.getElementById('audio_reactive').checked = true;
+        document.getElementById('audioSourceLabel').textContent = 'AUD: 实时接入 · ' + trackLabel;
+
+        const btn = document.getElementById('liveAudioBtn');
+        btn.classList.add('recording-active');
+        btn.textContent = t('btnLiveAudioStop');
+
+        stream.getAudioTracks()[0].addEventListener('ended', () => {
+          stopLiveAudio();
+          setVideoAudioActive(true, 'AUD: 原视频自带音轨');
+        });
+      } catch (err) {
+        alert('无法接入电脑音频: ' + err.message);
+      }
+    }
+
+    document.getElementById('liveAudioBtn').addEventListener('click', () => connectLiveComputerAudio(false));
+    document.getElementById('audioInputMode').addEventListener('change', () => {
+      const m = document.getElementById('audioInputMode').value;
+      if (m === 'video_audio') {
+        stopLiveAudio();
+        bgAudio.pause();
+        currentAudioFile = null;
+        setVideoAudioActive(true, 'AUD: 原视频自带音轨');
+        document.getElementById('audio_reactive').checked = true;
+      } else {
+        connectLiveComputerAudio(true);
+      }
+    });
+
+    function loadLocalAudioFile(file) {
+      if (!file) return;
+      stopLiveAudio();
+      setVideoAudioActive(false);
+      ensureAudioEngine();
+      resetAgcState();
+      currentAudioFile = file;
+      bgAudio.src = URL.createObjectURL(file);
+      if (!mediaElementSource) {
+        mediaElementSource = audioCtx.createMediaElementSource(bgAudio);
+        bgAudioGainNode = audioCtx.createGain();
+        bgAudioGainNode.gain.value = 1.0;
+        mediaElementSource.connect(bgAudioGainNode);
+        bgAudioGainNode.connect(analyserNode);
+        bgAudioGainNode.connect(audioCtx.destination);
+      }
+      document.getElementById('audio_reactive').checked = true;
+      document.getElementById('audioSourceLabel').textContent = 'AUD: ' + file.name;
+      bgAudio.play().catch(() => {});
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
+    }
+
+    document.getElementById('audioFileInput').addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (f) loadLocalAudioFile(f);
+    });
+
+    // 将对数分贝 (dB) 还原为三次线性声学功率 (v^3)，彻底拉开安静伴奏与重音鼓点之间的差距
+    function computeBandLinearPower(arr, startBin, endBin) {
+      let maxP = 0;
+      let sumP = 0;
+      let count = 0;
+      for (let i = startBin; i <= endBin && i < arr.length; i++) {
+        const v = arr[i] / 255.0;
+        const p = v * v * v;
+        if (p > maxP) maxP = p;
+        sumP += p;
+        count++;
+      }
+      const avgP = count > 0 ? (sumP / count) : 0;
+      return maxP * 0.65 + avgP * 0.35;
+    }
+
+    // 单频段「基线全扣除 + 帧间瞬态通量 + 向下动态扩展器 (Downward Expander)」计算模型
+    function processBandContrast(raw, emaKey, peakKey, prevKey, envKey, gain) {
+      // 1) 追踪当前乐句的平均背景基线 (EMA)：慢跟进，快回落
+      const curEma = agcState[emaKey];
+      agcState[emaKey] = raw > curEma
+        ? curEma * 0.90 + raw * 0.10
+        : curEma * 0.82 + raw * 0.18;
+
+      // 2) 100% 扣除持续背景音基线 (raw - ema)，只有超出平均伴奏的重音/鼓点才能通过！
+      const excess = Math.max(0, raw - agcState[emaKey] * 0.96);
+      // 帧间正跳变通量 (打击乐上升沿瞬态)
+      const flux = Math.max(0, raw - agcState[prevKey]) * 1.45;
+      agcState[prevKey] = raw;
+
+      // 合成瞬态脉冲信号：平时持续伴奏时 excess≈0, flux≈0，信号自动归零！
+      const pulse = excess * 0.55 + flux * 0.95;
+
+      // 3) 追踪近期鼓点脉冲的峰值包络用于自适应归一化
+      agcState[peakKey] = Math.max(pulse, agcState[peakKey] * 0.988, 0.035);
+      const norm = Math.min(1.35, pulse / agcState[peakKey]);
+
+      // 4) 噪声门限 (Noise Gate = 0.12) + 指数向下扩展器 (pow 1.75)，把小波动压低到 0~10%，只让真鼓点冲上 90~100%
+      let expanded = 0;
+      if (norm > 0.12) {
+        expanded = Math.pow((norm - 0.12) / 0.88, 1.75);
+      }
+
+      const target = Math.min(1.45, expanded * gain);
+
+      // 5) 零延迟起音 (Instant Attack) + 快速指数回落 (Fast Release)，每一拍打完立刻跌回谷底拉开大落差
+      if (target >= agcState[envKey]) {
+        agcState[envKey] = target;
+      } else {
+        agcState[envKey] = agcState[envKey] * 0.68 + target * 0.32;
+        if (agcState[envKey] < 0.015) agcState[envKey] = 0;
+      }
+      return agcState[envKey];
+    }
+
+    let silentVideoFrames = 0;
+
+    function sampleAudioBands(nowMs, gain) {
+      const hasActiveAudio = (!bgAudio.paused) || Boolean(liveAudioStream) || Boolean(synthInterval) || (isUsingVideoAudio && !video.paused && !video.muted);
+      if (analyserNode && freqDataArray && hasActiveAudio) {
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+        analyserNode.getByteFrequencyData(freqDataArray);
+        // 48000Hz / 2048 = 23.4Hz/bin
+        // Bass: bins 1..7 (~23~165Hz 纯底鼓与Sub-Bass), Mid: bins 8..85 (~185~2000Hz 军鼓/人声/合成器), High: bins 86..400 (~2k~9.4kHz 踩镲/瞬态)
+        const rawB = computeBandLinearPower(freqDataArray, 1, 7);
+        const rawM = computeBandLinearPower(freqDataArray, 8, 85);
+        const rawH = computeBandLinearPower(freqDataArray, 86, 400);
+
+        if (rawB + rawM + rawH > 0.0008) {
+          silentVideoFrames = 0;
+          liveBass = processBandContrast(rawB, 'emaB', 'peakSigB', 'prevB', 'envB', gain);
+          liveMid  = processBandContrast(rawM, 'emaM', 'peakSigM', 'prevM', 'envM', gain);
+          liveHigh = processBandContrast(rawH, 'emaH', 'peakSigH', 'prevH', 'envH', gain);
+        } else {
+          silentVideoFrames++;
+          if (isUsingVideoAudio && !liveAudioStream && bgAudio.paused && !synthInterval && silentVideoFrames > 35) {
+            const tSec = nowMs / 1000;
+            const beatPhase = (tSec * (128 / 60)) % 1;
+            liveBass = Math.min(1.3, Math.pow(Math.max(0, 1 - beatPhase * 3.8), 2.5) * gain * 0.75);
+            liveMid  = Math.min(1.3, Math.pow(Math.max(0, Math.sin(tSec * Math.PI * 4.2)), 6) * gain * 0.55);
+            liveHigh = Math.min(1.3, Math.pow(Math.abs(Math.sin(tSec * Math.PI * 8.0)), 6) * gain * 0.65);
+          } else {
+            liveBass *= 0.68;
+            liveMid  *= 0.68;
+            liveHigh *= 0.68;
+            if (liveBass < 0.01) liveBass = 0;
+            if (liveMid < 0.01) liveMid = 0;
+            if (liveHigh < 0.01) liveHigh = 0;
+          }
+        }
+      } else {
+        const tSec = nowMs / 1000;
+        const beatPhase = (tSec * (128 / 60)) % 1;
+        liveBass = Math.min(1.3, Math.pow(Math.max(0, 1 - beatPhase * 3.8), 2.5) * gain * 0.75);
+        liveMid  = Math.min(1.3, Math.pow(Math.max(0, Math.sin(tSec * Math.PI * 4.2)), 6) * gain * 0.55);
+        liveHigh = Math.min(1.3, Math.pow(Math.abs(Math.sin(tSec * Math.PI * 8.0)), 6) * gain * 0.65);
+      }
+
+      const bPct = Math.min(100, Math.round(liveBass * 100));
+      const mPct = Math.min(100, Math.round(liveMid * 100));
+      const hPct = Math.min(100, Math.round(liveHigh * 100));
+      document.getElementById('meterBass').style.width = bPct + '%';
+      document.getElementById('meterMid').style.width = mPct + '%';
+      document.getElementById('meterHigh').style.width = hPct + '%';
+      document.getElementById('valBass').textContent = bPct + '%';
+      document.getElementById('valMid').textContent = mPct + '%';
+      document.getElementById('valHigh').textContent = hPct + '%';
+    }
+
+    const colorPicker = document.getElementById('colorPicker');
+    const colorHex = document.getElementById('colorHex');
+    const swatches = document.querySelectorAll('.swatch');
+
+    function setThemeColor(hex) {
+      const clean = hex.toUpperCase();
+      colorHex.value = clean;
+      colorPicker.value = clean;
+      swatches.forEach(s => s.classList.toggle('active', s.dataset.color === clean));
+    }
+
+    swatches.forEach(s => s.addEventListener('click', () => setThemeColor(s.dataset.color)));
+    colorPicker.addEventListener('input', () => setThemeColor(colorPicker.value));
+    colorHex.addEventListener('input', () => {
+      if (/^#[0-9A-Fa-f]{6}$/.test(colorHex.value)) setThemeColor(colorHex.value);
+    });
+
+    const PRESETS = {
+      minimal: {
+        shape: 'square', region_style: 'l_frame', filter_effect: 'none',
+        line_style: 'straight', line_num: 0.45, color: '#FFFFFF',
+        text_position: 'center', text_content_type: 'dynamic',
+        use_center_as_hub: false, is_dashed_line: false, crazy_color: false,
+        audio_reactive: false
+      },
+      thermal: {
+        shape: 'square', region_style: 'l_frame', filter_effect: 'thermal',
+        line_style: 'straight', line_num: 0.5, color: '#38BDF8',
+        text_position: 'center', text_content_type: 'size',
+        use_center_as_hub: false, is_dashed_line: false, crazy_color: false,
+        audio_reactive: false
+      },
+      xray: {
+        shape: 'circle', region_style: 'scope', filter_effect: 'xray',
+        line_style: 'straight', line_num: 0.6, color: '#34D399',
+        text_position: 'bottom', text_content_type: 'position',
+        use_center_as_hub: true, is_dashed_line: true, crazy_color: false,
+        audio_reactive: false
+      },
+      glitch: {
+        shape: 'rect', region_style: 'label', filter_effect: 'glitch',
+        line_style: 'straight', line_num: 0.5, color: '#FBBF24',
+        text_position: 'center', text_content_type: 'id_score',
+        use_center_as_hub: false, is_dashed_line: false, crazy_color: false,
+        audio_reactive: false
+      },
+      audiorave: {
+        shape: 'square', region_style: 'l_frame', filter_effect: 'none',
+        line_style: 'straight', line_num: 0.65, color: '#38BDF8',
+        text_position: 'center', text_content_type: 'audio_db',
+        use_center_as_hub: false, is_dashed_line: false, crazy_color: false,
+        audio_reactive: true
+      }
+    };
+
+    const presetPills = document.querySelectorAll('.preset-pill');
+    presetPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        presetPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const cfg = PRESETS[pill.dataset.preset];
+        if (!cfg) return;
+        setShapeSeg(cfg.shape);
+        setPosSeg(cfg.text_position);
+        setLineSeg(cfg.line_style);
+        document.getElementById('region_style').value = cfg.region_style;
+        document.getElementById('filter_effect').value = cfg.filter_effect;
+        document.getElementById('line_num').value = cfg.line_num;
+        document.getElementById('lineNumVal').textContent = cfg.line_num;
+        document.getElementById('text_content_type').value = cfg.text_content_type;
+        document.getElementById('use_center_as_hub').checked = cfg.use_center_as_hub;
+        document.getElementById('is_dashed_line').checked = cfg.is_dashed_line;
+        document.getElementById('crazy_color').checked = cfg.crazy_color;
+        document.getElementById('invert_mask').checked = false;
+        setThemeColor(cfg.color);
+        if (cfg.audio_reactive) {
+          document.getElementById('audio_reactive').checked = true;
+          if (bgAudio.paused && !liveAudioStream && !synthInterval) {
+            setVideoAudioActive(true, 'AUD: 原视频音轨 · ' + (currentUploadedFile ? currentUploadedFile.name : '花素材.mp4'));
+          }
+        }
+      });
+    });
+
+    document.getElementById('audio_reactive').addEventListener('change', (e) => {
+      if (e.target.checked && bgAudio.paused && !liveAudioStream && !synthInterval) {
+        setVideoAudioActive(true, 'AUD: 原视频音轨 · ' + (currentUploadedFile ? currentUploadedFile.name : '花素材.mp4'));
+      }
+    });
+
+    // 随机灵感按钮 & 截帧保存按钮
+    document.getElementById('randomBtn').addEventListener('click', () => {
+      const shapes = ['square', 'rect', 'circle', 'particle', 'cross'];
+      const styles = ['l_frame', 'basic', 'frame', 'x_frame', 'label', 'scope', 'grid', 'dash', 'win2k', 'glow', 'particle'];
+      const filters = ['none', 'thermal', 'invert', 'glitch', 'pixel', 'dither', 'xray', 'edge', 'crt', 'water'];
+      const colors = ['#FFFFFF', '#38BDF8', '#34D399', '#FBBF24', '#FB7185'];
+      const txtTypes = ['dynamic', 'audio_db', 'size', 'id_score', 'position', 'random'];
+
+      document.getElementById('show_box').checked = true;
+      setShapeSeg(shapes[Math.floor(Math.random() * shapes.length)]);
+      document.getElementById('region_style').value = styles[Math.floor(Math.random() * styles.length)];
+      document.getElementById('filter_effect').value = filters[Math.floor(Math.random() * filters.length)];
+      document.getElementById('text_content_type').value = txtTypes[Math.floor(Math.random() * txtTypes.length)];
+      setThemeColor(colors[Math.floor(Math.random() * colors.length)]);
+      presetPills.forEach(p => p.classList.remove('active'));
+    });
+
+    document.getElementById('snapBtn').addEventListener('click', () => {
+      const url = mainCanvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `latentvision_frame_${Date.now()}.png`;
+      a.click();
+    });
+
+    const getParams = () => ({
+      showBox: document.getElementById('show_box').checked,
+      showText: document.getElementById('show_text').checked,
+      textContentType: document.getElementById('text_content_type').value,
+      textPosition: document.getElementById('text_position').value,
+      fontSize: parseInt(document.getElementById('font_size').value, 10),
+      shape: document.getElementById('shape').value,
+      regionStyle: document.getElementById('region_style').value,
+      filterEffect: document.getElementById('filter_effect').value,
+      invertMask: document.getElementById('invert_mask').checked,
+      regionBlink: document.getElementById('region_blink').checked,
+      lineStyle: document.getElementById('line_style').value,
+      lineNum: parseFloat(document.getElementById('line_num').value),
+      useCenterAsHub: document.getElementById('use_center_as_hub').checked,
+      isDashedLine: document.getElementById('is_dashed_line').checked,
+      color: document.getElementById('colorHex').value || '#FFFFFF',
+      strokeWidth: parseFloat(document.getElementById('stroke_width').value),
+      crazyColor: document.getElementById('crazy_color').checked,
+      threshold: parseInt(document.getElementById('threshold').value, 10),
+      blobSize: parseFloat(document.getElementById('blob_size').value),
+      blobSizeThreshold: parseFloat(document.getElementById('blob_size_threshold').value),
+      blobThresholdByCount: document.getElementById('blob_threshold_by_count').value === 'true',
+      blobCountThreshold: parseInt(document.getElementById('blob_count_threshold').value, 10),
+      frameSkip: parseInt(document.getElementById('frame_skip').value, 10),
+      sameSizeEnabled: document.getElementById('same_size_enabled').checked,
+      singleTrackingMode: document.getElementById('single_tracking_mode').checked,
+      audioReactive: document.getElementById('audio_reactive').checked,
+      audioGain: parseFloat(document.getElementById('audio_gain').value),
+      audioFlash: document.getElementById('audio_flash').checked,
+      audioChromatic: document.getElementById('audio_chromatic').checked,
+      audioBassZoom: document.getElementById('audio_bass_zoom').checked,
+      audioBoxBounce: document.getElementById('audio_box_bounce').checked,
+      audioLineWave: document.getElementById('audio_line_wave').checked,
+      audioSpectrumHud: document.getElementById('audio_spectrum_hud').checked,
+    });
+
+    // =========================================================================
+    // 3. WebGL 片元着色器引擎 (支持 14 种区域滤镜 + 实时音频 RGB色差 / 鼓点爆闪 / 镜头推拉)
+    // =========================================================================
+    const gl = webglCanvas.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true });
+    let glProgram = null, videoTex = null, maskTex = null;
+
+    const EFFECT_MAP = {
+      none: 0, invert: 2, glitch: 3, thermal: 6, pixel: 7, tone: 8,
+      blur: 9, dither: 22, zoom: 23, xray: 26, water: 27, mask: 28, crt: 29, edge: 30
+    };
+
+    if (gl) {
+      const vsSrc = `
+        attribute vec2 a_position;
+        attribute vec2 a_texCoord;
+        varying vec2 v_texCoord;
+        void main() {
+          gl_Position = vec4(a_position, 0.0, 1.0);
+          v_texCoord = a_texCoord;
+        }
+      `;
+      const fsSrc = `
+        precision mediump float;
+        varying vec2 v_texCoord;
+        uniform sampler2D u_texture;
+        uniform sampler2D u_maskTexture;
+        uniform int u_effectType;
+        uniform vec3 u_color;
+        uniform float u_time;
+        uniform vec2 u_resolution;
+        uniform bool u_invertMask;
+        uniform float u_audioBass;
+        uniform float u_audioMid;
+        uniform float u_audioHigh;
+        uniform bool u_audioZoom;
+        uniform bool u_audioChromatic;
+        uniform bool u_audioFlash;
+
+        vec3 thermalEffect(vec3 color) {
+          float intensity = dot(color, vec3(0.299, 0.587, 0.114));
+          float timeOffset = mod(u_time / 3.0, 1.0);
+          float hue = mod(intensity * 300.0 + timeOffset * 360.0, 360.0);
+          float h = hue / 60.0;
+          float s = 0.5 + intensity * 0.5;
+          float l = 0.3 + intensity * 0.5;
+          float c = (1.0 - abs(2.0 * l - 1.0)) * s;
+          float x = c * (1.0 - abs(mod(h, 2.0) - 1.0));
+          float m = l - c / 2.0;
+          vec3 rgb;
+          if (h < 1.0) rgb = vec3(c, x, 0.0);
+          else if (h < 2.0) rgb = vec3(x, c, 0.0);
+          else if (h < 3.0) rgb = vec3(0.0, c, x);
+          else if (h < 4.0) rgb = vec3(0.0, x, c);
+          else if (h < 5.0) rgb = vec3(x, 0.0, c);
+          else rgb = vec3(c, 0.0, x);
+          return rgb + m;
+        }
+
+        vec3 pixelateEffect(vec2 uv) {
+          float pixelSize = 8.0 / u_resolution.x;
+          vec2 puv = floor(uv / pixelSize) * pixelSize;
+          return texture2D(u_texture, puv).rgb;
+        }
+
+        vec3 blurEffect(vec2 uv) {
+          vec3 col = vec3(0.0);
+          float total = 0.0;
+          float bs = 3.0 / u_resolution.x;
+          for (float x = -2.0; x <= 2.0; x += 1.0) {
+            for (float y = -2.0; y <= 2.0; y += 1.0) {
+              float w = 1.0 / (1.0 + length(vec2(x, y)));
+              col += texture2D(u_texture, uv + vec2(x, y) * bs).rgb * w;
+              total += w;
+            }
+          }
+          return col / total;
+        }
+
+        vec3 ditheringEffect(vec2 uv, vec3 color, vec3 tintColor) {
+          vec2 p = floor(uv * u_resolution);
+          float x = mod(p.x, 4.0);
+          float y = mod(p.y, 4.0);
+          float th = 0.0;
+          if (y < 1.0) th = (x < 1.0) ? 0.0 : (x < 2.0) ? 8.0 : (x < 3.0) ? 2.0 : 10.0;
+          else if (y < 2.0) th = (x < 1.0) ? 12.0 : (x < 2.0) ? 4.0 : (x < 3.0) ? 14.0 : 6.0;
+          else if (y < 3.0) th = (x < 1.0) ? 3.0 : (x < 2.0) ? 11.0 : (x < 3.0) ? 1.0 : 9.0;
+          else th = (x < 1.0) ? 15.0 : (x < 2.0) ? 7.0 : (x < 3.0) ? 13.0 : 5.0;
+          float b = dot(color, vec3(0.299, 0.587, 0.114));
+          return mix(vec3(0.0), tintColor, step(th / 16.0, b));
+        }
+
+        vec3 xrayEffect(vec3 color, vec2 uv) {
+          vec3 inv = vec3(1.0) - color;
+          float g = smoothstep(0.3, 0.7, pow(dot(inv, vec3(0.299, 0.587, 0.114)), 0.5));
+          float off = 1.0 / u_resolution.x;
+          float tl = dot(texture2D(u_texture, uv + vec2(-off, -off)).rgb, vec3(0.299, 0.587, 0.114));
+          float br = dot(texture2D(u_texture, uv + vec2(off, off)).rgb, vec3(0.299, 0.587, 0.114));
+          float tr = dot(texture2D(u_texture, uv + vec2(off, -off)).rgb, vec3(0.299, 0.587, 0.114));
+          float bl = dot(texture2D(u_texture, uv + vec2(-off, off)).rgb, vec3(0.299, 0.587, 0.114));
+          float edge = smoothstep(0.1, 0.3, abs(tl - br) + abs(tr - bl));
+          float fg = clamp(g + edge * 0.5, 0.0, 1.0);
+          return vec3(fg * 0.8, fg * 0.9, fg);
+        }
+
+        vec3 glitchEffect(vec2 uv) {
+          float t = 0.1 * u_time;
+          float s1 = floor(uv.y * 20.0 + t * 5.0);
+          float s2 = floor(uv.y * 30.0 + t * 3.0);
+          float r1 = fract(sin(s1 * 12.9898) * 43758.5453);
+          float r2 = fract(sin(s2 * 78.233) * 43758.5453);
+          vec2 duv = uv + vec2((r1 - 0.5) * 0.05, (r2 - 0.5) * 0.015);
+          float shift = 0.005;
+          return vec3(
+            texture2D(u_texture, duv + vec2(shift, 0.0)).r,
+            texture2D(u_texture, duv).g,
+            texture2D(u_texture, duv - vec2(shift, 0.0)).b
+          );
+        }
+
+        vec3 edgeEffect(vec2 uv) {
+          vec3 base = texture2D(u_texture, uv).rgb;
+          float off = 1.0 / u_resolution.x;
+          float tl = dot(texture2D(u_texture, uv + vec2(-off, -off)).rgb, vec3(0.299, 0.587, 0.114));
+          float tm = dot(texture2D(u_texture, uv + vec2(0.0, -off)).rgb, vec3(0.299, 0.587, 0.114));
+          float tr = dot(texture2D(u_texture, uv + vec2(off, -off)).rgb, vec3(0.299, 0.587, 0.114));
+          float ml = dot(texture2D(u_texture, uv + vec2(-off, 0.0)).rgb, vec3(0.299, 0.587, 0.114));
+          float mr = dot(texture2D(u_texture, uv + vec2(off, 0.0)).rgb, vec3(0.299, 0.587, 0.114));
+          float bl = dot(texture2D(u_texture, uv + vec2(-off, off)).rgb, vec3(0.299, 0.587, 0.114));
+          float bm = dot(texture2D(u_texture, uv + vec2(0.0, off)).rgb, vec3(0.299, 0.587, 0.114));
+          float br = dot(texture2D(u_texture, uv + vec2(off, off)).rgb, vec3(0.299, 0.587, 0.114));
+          float gx = -tl - 2.0*ml - bl + tr + 2.0*mr + br;
+          float gy = -tl - 2.0*tm - tr + bl + 2.0*bm + br;
+          float edge = smoothstep(0.2, 0.6, length(vec2(gx, gy)));
+          return clamp(base + edge * u_color, 0.0, 1.0);
+        }
+
+        vec3 crtEffect(vec2 uv) {
+          vec2 centered = uv - vec2(0.5);
+          centered.x *= u_resolution.x / u_resolution.y;
+          float r2 = dot(centered, centered);
+          vec2 duv = uv + centered * (r2 * 0.25);
+          float ca = 1.5 / u_resolution.x;
+          vec3 col = vec3(
+            texture2D(u_texture, duv + vec2(ca, 0.0)).r,
+            texture2D(u_texture, duv).g,
+            texture2D(u_texture, duv - vec2(ca, 0.0)).b
+          );
+          col -= sin(uv.y * u_resolution.y * 2.0 + u_time * 10.0) * 0.12;
+          return col * smoothstep(0.85, 0.3, r2);
+        }
+
+        void main() {
+          vec2 baseUV = v_texCoord;
+          if (u_audioZoom && u_audioBass > 0.08) {
+            float z = 1.0 + min(0.24, pow((u_audioBass - 0.08) / 0.92, 1.35) * 0.16);
+            baseUV = clamp(vec2(0.5) + (baseUV - vec2(0.5)) / z, 0.0, 1.0);
+          }
+
+          // 采样追踪框内部遮罩及周围 18px 光晕环带，让声音 RGB 色差仅作用于框内与框周围，不撕裂全画面
+          float maskCenter = texture2D(u_maskTexture, baseUV).r;
+          vec3 orig;
+          if (u_audioChromatic && (u_audioBass + u_audioHigh) > 0.08) {
+            vec2 haloStep = 18.0 / u_resolution;
+            float maskHalo = max(
+              max(
+                texture2D(u_maskTexture, clamp(baseUV + vec2(haloStep.x, 0.0), 0.0, 1.0)).r,
+                texture2D(u_maskTexture, clamp(baseUV - vec2(haloStep.x, 0.0), 0.0, 1.0)).r
+              ),
+              max(
+                texture2D(u_maskTexture, clamp(baseUV + vec2(0.0, haloStep.y), 0.0, 1.0)).r,
+                texture2D(u_maskTexture, clamp(baseUV - vec2(0.0, haloStep.y), 0.0, 1.0)).r
+              )
+            );
+            vec2 diagStep = haloStep * 0.72;
+            float maskDiag = max(
+              max(
+                texture2D(u_maskTexture, clamp(baseUV + diagStep, 0.0, 1.0)).r,
+                texture2D(u_maskTexture, clamp(baseUV - diagStep, 0.0, 1.0)).r
+              ),
+              max(
+                texture2D(u_maskTexture, clamp(baseUV + vec2(diagStep.x, -diagStep.y), 0.0, 1.0)).r,
+                texture2D(u_maskTexture, clamp(baseUV + vec2(-diagStep.x, diagStep.y), 0.0, 1.0)).r
+              )
+            );
+            float caRegion = max(maskCenter, max(maskHalo, maskDiag) * 0.85);
+            if (caRegion > 0.01) {
+              float caStrength = max(0.0, (u_audioBass * 0.58 + u_audioHigh * 0.88) - 0.06);
+              vec2 caOff = vec2(caStrength * 0.022, u_audioHigh * 0.009) * caRegion;
+              orig = vec3(
+                texture2D(u_texture, clamp(baseUV + caOff, 0.0, 1.0)).r,
+                texture2D(u_texture, baseUV).g,
+                texture2D(u_texture, clamp(baseUV - caOff, 0.0, 1.0)).b
+              );
+            } else {
+              orig = texture2D(u_texture, baseUV).rgb;
+            }
+          } else {
+            orig = texture2D(u_texture, baseUV).rgb;
+          }
+
+          vec3 eff = orig;
+          if (u_effectType == 2) eff = vec3(1.0) - orig;
+          else if (u_effectType == 3) eff = glitchEffect(baseUV);
+          else if (u_effectType == 6) eff = thermalEffect(orig);
+          else if (u_effectType == 7) eff = pixelateEffect(baseUV);
+          else if (u_effectType == 8) eff = mix(orig, u_color, 0.35);
+          else if (u_effectType == 9) eff = blurEffect(baseUV);
+          else if (u_effectType == 22) eff = ditheringEffect(baseUV, orig, u_color);
+          else if (u_effectType == 23) {
+            vec2 zuv = vec2(0.5) + (baseUV - vec2(0.5)) / 2.0;
+            eff = texture2D(u_texture, clamp(zuv, 0.0, 1.0)).rgb;
+          }
+          else if (u_effectType == 26) eff = xrayEffect(orig, baseUV);
+          else if (u_effectType == 27) {
+            vec2 wuv = baseUV;
+            float t = u_time * 2.0;
+            float X = wuv.x * 40.0 + t;
+            float Y = wuv.y * 40.0 + t;
+            wuv.y += cos(X + Y) * 0.03 * cos(Y);
+            wuv.x += sin(X - Y) * 0.03 * sin(Y);
+            eff = texture2D(u_texture, fract(wuv)).rgb;
+          }
+          else if (u_effectType == 28) eff = u_color;
+          else if (u_effectType == 29) eff = crtEffect(baseUV);
+          else if (u_effectType == 30) eff = edgeEffect(baseUV);
+
+          float m = (u_effectType > 0) ? (u_invertMask ? (1.0 - maskCenter) : maskCenter) : 0.0;
+          vec3 finalCol = mix(orig, eff, m);
+
+          if (u_audioFlash && u_audioBass > 0.35) {
+            float fl = min(1.0, pow((u_audioBass - 0.35) * 1.55, 1.4));
+            finalCol = clamp(finalCol * (1.0 + fl * 0.80) + vec3(fl * 0.40), 0.0, 1.0);
+          }
+
+          gl_FragColor = vec4(finalCol, 1.0);
+        }
+      `;
+      const compile = (type, src) => {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return s;
+      };
+      const vs = compile(gl.VERTEX_SHADER, vsSrc);
+      const fs = compile(gl.FRAGMENT_SHADER, fsSrc);
+      glProgram = gl.createProgram();
+      gl.attachShader(glProgram, vs);
+      gl.attachShader(glProgram, fs);
+      gl.linkProgram(glProgram);
+      gl.useProgram(glProgram);
+
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1, 0, 1,  1, -1, 1, 1,  -1, 1, 0, 0,  1, 1, 1, 0
+      ]), gl.STATIC_DRAW);
+      const aPos = gl.getAttribLocation(glProgram, 'a_position');
+      const aTex = gl.getAttribLocation(glProgram, 'a_texCoord');
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 16, 0);
+      gl.enableVertexAttribArray(aTex);
+      gl.vertexAttribPointer(aTex, 2, gl.FLOAT, false, 16, 8);
+
+      const createTex = () => {
+        const t = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        return t;
+      };
+      videoTex = createTex();
+      maskTex = createTex();
+    }
+
+    // =========================================================================
+    // 4. Ember 风格多频段平滑流光波峰与镜像倒影绘制器
+    // =========================================================================
+    const chopAmp = [0, 0, 0, 0];
+    function updateChopScope(blobCount, avgArea, audioOn) {
+      chopHistory.push(blobCount);
+      chopHistory.shift();
+      areaHistory.push(avgArea);
+      areaHistory.shift();
+
+      const cw = chopCanvas.width, ch = chopCanvas.height;
+      const midY = ch * 0.66;
+      chopCtx.clearRect(0, 0, cw, ch);
+
+      // 基准轴线
+      chopCtx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+      chopCtx.lineWidth = 1;
+      chopCtx.beginPath();
+      chopCtx.moveTo(0, midY);
+      chopCtx.lineTo(cw, midY);
+      chopCtx.stroke();
+
+      // 关闭声音可视化时：声学波峰平滑归零、不再叠加任何时间驱动的波纹，画面完全静止
+      const tSec = audioOn ? performance.now() / 1000 : 0;
+      const recent = chopHistory.slice(-12);
+      const avgCount = recent.reduce((a, v) => a + v, 0) / recent.length;
+      const maxCount = Math.max(12, ...chopHistory);
+      const countRatio = Math.min(1, avgCount / maxCount);
+
+      const targets = audioOn ? [
+        Math.max(0.12, liveBass * 0.95),
+        Math.max(0.18, countRatio * 0.85 + liveMid * 0.35),
+        Math.max(0.10, liveMid * 0.90),
+        Math.max(0.08, liveHigh * 0.95)
+      ] : [0, countRatio * 0.7, 0, 0];
+      for (let k = 0; k < 4; k++) {
+        const rate = audioOn ? 0.45 : 0.12;
+        chopAmp[k] += (targets[k] - chopAmp[k]) * rate;
+        if (!audioOn && Math.abs(chopAmp[k] - targets[k]) < 0.002) chopAmp[k] = targets[k];
+      }
+
+      const peaks = [
+        { center: 0.18, width: 0.085, amp: chopAmp[0], color: '#38bdf8' },
+        { center: 0.42, width: 0.095, amp: chopAmp[1], color: '#34d399' },
+        { center: 0.66, width: 0.085, amp: chopAmp[2], color: '#fbbf24' },
+        { center: 0.84, width: 0.075, amp: chopAmp[3], color: '#f472b6' }
+      ];
+      const rippleOf = (u, idx, sign) => audioOn ? 1 + 0.08 * Math.sin(u * 28 + sign * tSec * 5.5 + idx) : 1;
+
+      // 1) 底部镜像虚影波峰
+      peaks.forEach((pk, idx) => {
+        chopCtx.beginPath();
+        for (let x = 0; x <= cw; x += 3) {
+          const u = x / cw;
+          const d = (u - pk.center) / pk.width;
+          const y = midY + Math.exp(-0.5 * d * d) * pk.amp * (ch * 0.26) * rippleOf(u, idx, -1);
+          if (x === 0) chopCtx.moveTo(x, y); else chopCtx.lineTo(x, y);
+        }
+        chopCtx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        chopCtx.lineWidth = 1.1;
+        chopCtx.stroke();
+      });
+
+      // 2) 上方发光多彩主波峰
+      peaks.forEach((pk, idx) => {
+        chopCtx.save();
+        chopCtx.beginPath();
+        for (let x = 0; x <= cw; x += 2) {
+          const u = x / cw;
+          const d = (u - pk.center) / pk.width;
+          const y = midY - Math.exp(-0.5 * d * d) * pk.amp * (ch * 0.56) * rippleOf(u, idx, 1);
+          if (x === 0) chopCtx.moveTo(x, y); else chopCtx.lineTo(x, y);
+        }
+        chopCtx.shadowBlur = audioOn ? 10 : 4;
+        chopCtx.shadowColor = pk.color;
+        chopCtx.strokeStyle = pk.color;
+        chopCtx.globalAlpha = audioOn ? 1 : 0.55;
+        chopCtx.lineWidth = 1.75;
+        chopCtx.stroke();
+        chopCtx.lineTo(cw, midY);
+        chopCtx.lineTo(0, midY);
+        chopCtx.closePath();
+        const grad = chopCtx.createLinearGradient(0, 2, 0, midY);
+        grad.addColorStop(0, pk.color + '44');
+        grad.addColorStop(1, pk.color + '00');
+        chopCtx.fillStyle = grad;
+        chopCtx.fill();
+        chopCtx.restore();
+      });
+    }
+
+    // =========================================================================
+    // 5. 60FPS 实时连通域检测与图层合成主循环
+    // =========================================================================
+    let singleTracker = null;
+    let cachedBlobs = [];
+    let lastFpsTime = performance.now(), framesInSec = 0, currentFps = 60, frameCount = 0;
+
+    const mulberry32 = (e) => {
+      let t = e >>> 0;
+      t = Math.imul((t = (t + 0x6d2b79f5) >>> 0) ^ (t >>> 15), 1 | t) >>> 0;
+      return (((t ^= (t + Math.imul(t ^ (t >>> 7), 61 | t)) >>> 0) ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
+    // 精密光学十字准星 (Crosshair)：中心微距留白 + 四向主刻度臂 + 双重微标尺刻度 + 四象限锚点
+    const drawCrossShape = (context, cx, cy, side, col, sw) => {
+      const r = Math.max(10, side * 0.52);
+      const gap = Math.max(3.5, r * 0.18);
+      const tick1 = r * 0.48, tick2 = r * 0.78;
+      const tickLen = Math.max(2.5, r * 0.11);
+      context.save();
+      context.strokeStyle = col;
+      context.fillStyle = col;
+      context.lineWidth = sw;
+      context.beginPath();
+      // 四向主准星臂
+      context.moveTo(cx - r, cy); context.lineTo(cx - gap, cy);
+      context.moveTo(cx + gap, cy); context.lineTo(cx + r, cy);
+      context.moveTo(cx, cy - r); context.lineTo(cx, cy - gap);
+      context.moveTo(cx, cy + gap); context.lineTo(cx, cy + r);
+      context.stroke();
+
+      // 垂直微标尺刻度线
+      context.lineWidth = Math.max(1, sw * 0.75);
+      context.globalAlpha = 0.78;
+      context.beginPath();
+      [-tick1, tick1, -tick2, tick2].forEach(off => {
+        context.moveTo(cx + off, cy - tickLen); context.lineTo(cx + off, cy + tickLen);
+        context.moveTo(cx - tickLen, cy + off); context.lineTo(cx + tickLen, cy + off);
+      });
+      context.stroke();
+
+      // 四象限光学对焦微点
+      const d = r * 0.38;
+      context.globalAlpha = 0.65;
+      [[-d, -d], [d, -d], [-d, d], [d, d]].forEach(([dx, dy]) => {
+        context.fillRect(cx + dx - 1, cy + dy - 1, 2, 2);
+      });
+      context.restore();
+    };
+
+    // 流行生成式粒子发射场 (Particle Emitter Field)：中心微准星发射源 + 径向涡流速度拖尾粒子流 + 辉光散景微粒
+    const drawParticleField = (context, cx, cy, side, col, sw, nowMs, idx, audioBoost = 0) => {
+      const r = Math.max(14, side * 0.62);
+      const tSec = nowMs / 1000;
+      const count = 24;
+      context.save();
+      context.strokeStyle = col;
+      context.fillStyle = col;
+
+      // 1) 发射源中心微十字锚点与呼吸内环
+      const coreArm = Math.max(3.5, Math.min(7, r * 0.14));
+      context.lineWidth = Math.max(1, sw * 0.85);
+      context.globalAlpha = 0.75;
+      context.beginPath();
+      context.moveTo(cx - coreArm, cy); context.lineTo(cx + coreArm, cy);
+      context.moveTo(cx, cy - coreArm); context.lineTo(cx, cy + coreArm);
+      context.stroke();
+
+      // 2) 外围断续轨道场刻度环
+      context.globalAlpha = 0.24;
+      context.lineWidth = 1;
+      for (let a = 0; a < 4; a++) {
+        const startAng = tSec * 0.45 + idx * 0.7 + a * (Math.PI / 2);
+        context.beginPath();
+        context.arc(cx, cy, r * 0.72, startAng, startAng + 0.42);
+        context.stroke();
+      }
+
+      // 3) 24 颗连续径向喷射与旋涡漂移粒子 (带速度矢量拖尾与发光核)
+      const speedMul = 1 + audioBoost * 1.15;
+      for (let k = 0; k < count; k++) {
+        const h1 = mulberry32((idx + 1) * 3571 + k * 997);
+        const h2 = mulberry32((idx + 1) * 7919 + k * 1613);
+        const h3 = mulberry32((idx + 1) * 2903 + k * 421);
+
+        const speed = (0.42 + h1 * 0.78) * speedMul;
+        const life = (tSec * speed + h2) % 1;
+        const easeOut = 1 - Math.pow(1 - life, 1.85);
+        const swirl = (h3 - 0.5) * 1.15 * life;
+        const ang = (k / count) * Math.PI * 2 + h1 * 1.2 + swirl;
+
+        const dist = easeOut * r * (0.85 + h2 * 0.45);
+        const px = cx + Math.cos(ang) * dist;
+        const py = cy + Math.sin(ang) * dist;
+
+        // 拖尾向量沿喷射切线与径向合成
+        const tailLen = Math.max(3, (1 - life * 0.55) * r * (0.20 + audioBoost * 0.14));
+        const tailAng = ang - swirl * 0.35;
+        const tx = px - Math.cos(tailAng) * tailLen;
+        const ty = py - Math.sin(tailAng) * tailLen;
+
+        const alpha = Math.sin(life * Math.PI) * (0.45 + 0.55 * h3);
+        context.globalAlpha = Math.max(0.05, Math.min(1, alpha));
+
+        // 粒子速度流线拖尾
+        context.lineWidth = Math.max(0.9, (1.4 - life * 0.8) * (sw * 0.65));
+        context.beginPath();
+        context.moveTo(tx, ty);
+        context.lineTo(px, py);
+        context.stroke();
+
+        // 粒子发光核心与散景微光
+        const pr = Math.max(1.1, (1.0 + h1 * 2.1) * (1 - life * 0.45));
+        if (k % 4 === 0) {
+          context.shadowBlur = 8;
+          context.shadowColor = col;
+        } else {
+          context.shadowBlur = 0;
+        }
+        context.beginPath();
+        context.arc(px, py, pr, 0, Math.PI * 2);
+        context.fill();
+      }
+      context.shadowBlur = 0;
+      context.restore();
+    };
+
+    const formatBlobText = (idx, blob, total, nowMs, type) => {
+      if (type === 'position') return `X:${Math.round(blob.x)} Y:${Math.round(blob.y)}`;
+      if (type === 'size') return `${blob.size.toFixed(1)}`;
+      if (type === 'audio_db') {
+        const db = Math.round(45 + liveBass * 52);
+        const hz = Math.round(60 + (idx + 1) * 110 + liveHigh * 800);
+        return `${db}dB // ${hz}Hz`;
+      }
+      if (type === 'dynamic') {
+        const bucket = Math.floor(nowMs / 150);
+        return mulberry32((idx + 1) * 9973 + bucket * 31337).toFixed(4);
+      }
+      if (type === 'id_score') {
+        const bucket = Math.floor(nowMs / 300);
+        const s = 85 + 14.9 * mulberry32((idx + 1) * 4099 + bucket * 101);
+        return `#${String(idx + 1).padStart(2, '0')} ${s.toFixed(1)}%`;
+      }
+      if (type === 'count') return `Count ${total}`;
+      return ((idx + 1) / 7).toFixed(4);
+    };
+
+    function formatTimecode(sec) {
+      if (!isFinite(sec)) return '00:00.00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      const ms = Math.floor((sec % 1) * 100);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+    }
+
+    function drawWin2kBox(context, x, y, w, h) {
+      context.save();
+      context.strokeStyle = '#FFFFFF';
+      context.lineWidth = 1;
+      context.strokeRect(x, y, w, h);
+      context.fillStyle = '#0000A8';
+      context.fillRect(x + 2, y + 2, Math.max(10, w - 4), 18);
+      context.fillStyle = '#FFFFFF';
+      context.font = 'bold 10px Tahoma, Arial';
+      context.textAlign = 'left';
+      context.textBaseline = 'middle';
+      context.fillText('Error', x + 6, y + 11);
+      const bx = x + w - 16, by = y + 4;
+      context.fillStyle = '#C0C0C0';
+      context.fillRect(bx, by, 12, 12);
+      context.strokeStyle = '#202020';
+      context.beginPath();
+      context.moveTo(bx + 3, by + 3); context.lineTo(bx + 9, by + 9);
+      context.moveTo(bx + 9, by + 3); context.lineTo(bx + 3, by + 9);
+      context.stroke();
+      context.restore();
+    }
+
+    function renderFrame(nowMs) {
+      frameCount++;
+      framesInSec++;
+      if (nowMs - lastFpsTime >= 500) {
+        currentFps = Math.round((framesInSec * 1000) / (nowMs - lastFpsTime));
+        framesInSec = 0;
+        lastFpsTime = nowMs;
+        document.getElementById('hudFps').textContent = `${currentFps} FPS`;
+        document.getElementById('nodeFpsText').textContent = `${currentFps} FPS`;
+      }
+
+      const vw = video.videoWidth || 640;
+      const vh = video.videoHeight || 360;
+      if (video.readyState >= 2 && vw > 0 && vh > 0) {
+        if (mainCanvas.width !== vw || mainCanvas.height !== vh) {
+          mainCanvas.width = vw;
+          mainCanvas.height = vh;
+          document.getElementById('nodeSourceText').textContent = `moviefilein1 (${vw}×${vh})`;
+        }
+
+        document.getElementById('timecodeText').textContent = formatTimecode(video.currentTime || (nowMs / 1000));
+
+        const p = getParams();
+        if (p.audioReactive) {
+          sampleAudioBands(nowMs, p.audioGain);
+        } else {
+          liveBass = 0; liveMid = 0; liveHigh = 0;
+        }
+        document.getElementById('nodeShaderText').textContent = p.audioReactive
+          ? `shader: ${p.filterEffect} + FFT(${Math.round(liveBass * 100)}%)`
+          : `shader: ${p.filterEffect}`;
+
+        const shouldShowBlob = (idx) => {
+          if (!p.regionBlink) return true;
+          const bucket = Math.floor(nowMs / 300);
+          return mulberry32((1664525 * bucket + 0x3c6ef35f * idx) >>> 0) < 0.5;
+        };
+
+        // --- A. 4-连通域泛洪斑点检测 (支持 Frame Skip 跳帧保持 & ROI 过滤 & 数量排序) ---
+        let baseBlobs = cachedBlobs;
+        const shouldDetect = (p.frameSkip === 0) || (frameCount % (p.frameSkip + 1) === 0) || cachedBlobs.length === 0;
+
+        if (p.singleTrackingMode) {
+          const s = p.blobSize;
+          if (!singleTracker) {
+            singleTracker = {
+              x: vw / 2, y: vh / 2, tx: Math.random() * (vw - 2 * s) + s, ty: Math.random() * (vh - 2 * s) + s,
+              waiting: false, waitStart: 0
+            };
+          }
+          if (singleTracker.waiting) {
+            if (nowMs - singleTracker.waitStart > 1000) {
+              singleTracker.waiting = false;
+              singleTracker.tx = Math.random() * (vw - 2 * s) + s;
+              singleTracker.ty = Math.random() * (vh - 2 * s) + s;
+            }
+          } else {
+            const dx = singleTracker.tx - singleTracker.x, dy = singleTracker.ty - singleTracker.y;
+            if (Math.hypot(dx, dy) < 15) {
+              singleTracker.waiting = true;
+              singleTracker.waitStart = nowMs;
+            } else {
+              singleTracker.x += dx * 0.08;
+              singleTracker.y += dy * 0.08;
+            }
+          }
+          baseBlobs = [{ x: singleTracker.x, y: singleTracker.y, size: s, minX: singleTracker.x - s/2, minY: singleTracker.y - s/2, maxX: singleTracker.x + s/2, maxY: singleTracker.y + s/2 }];
+          cachedBlobs = baseBlobs;
+        } else if (shouldDetect) {
+          const detected = [];
+          const maxDim = Math.max(vw, vh);
+          const scale = Math.min(1, 512 / maxDim);
+          const dw = Math.max(1, Math.floor(vw * scale));
+          const dh = Math.max(1, Math.floor(vh * scale));
+          if (detectCanvas.width !== dw || detectCanvas.height !== dh) {
+            detectCanvas.width = dw;
+            detectCanvas.height = dh;
+          }
+          detectCtx.drawImage(video, 0, 0, dw, dh);
+          const data = detectCtx.getImageData(0, 0, dw, dh).data;
+          const visited = new Uint8Array(dw * dh);
+          const invScale = 1 / scale;
+          const thresh = p.threshold;
+          const stackX = new Int32Array(dw * dh);
+          const stackY = new Int32Array(dw * dh);
+
+          for (let y = 0; y < dh; y++) {
+            for (let x = 0; x < dw; x++) {
+              const idx = y * dw + x;
+              if (visited[idx]) continue;
+              const p4 = idx * 4;
+              if ((data[p4] + data[p4 + 1] + data[p4 + 2]) / 3 <= thresh) continue;
+
+              let sp = 0;
+              stackX[sp] = x; stackY[sp] = y; sp++;
+              visited[idx] = 1;
+              let count = 0, sumX = 0, sumY = 0, minX = x, minY = y, maxX = x, maxY = y;
+
+              while (sp > 0) {
+                sp--;
+                const cx = stackX[sp], cy = stackY[sp];
+                count++;
+                sumX += cx; sumY += cy;
+                if (cx < minX) minX = cx;
+                if (cy < minY) minY = cy;
+                if (cx > maxX) maxX = cx;
+                if (cy > maxY) maxY = cy;
+
+                const neighbors = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]];
+                for (let k = 0; k < 4; k++) {
+                  const nx = neighbors[k][0], ny = neighbors[k][1];
+                  if (nx < 0 || ny < 0 || nx >= dw || ny >= dh) continue;
+                  const nIdx = ny * dw + nx;
+                  if (visited[nIdx]) continue;
+                  const np4 = nIdx * 4;
+                  if ((data[np4] + data[np4 + 1] + data[np4 + 2]) / 3 > thresh) {
+                    visited[nIdx] = 1;
+                    stackX[sp] = nx; stackY[sp] = ny; sp++;
+                  }
+                }
+              }
+
+              const scaledSize = count * invScale;
+              if (p.blobThresholdByCount || scaledSize > p.blobSizeThreshold) {
+                detected.push({
+                  x: (sumX / count) * invScale,
+                  y: (sumY / count) * invScale,
+                  size: scaledSize,
+                  minX: minX * invScale,
+                  minY: minY * invScale,
+                  maxX: (maxX + 1) * invScale,
+                  maxY: (maxY + 1) * invScale,
+                });
+              }
+            }
+          }
+
+          let filtered = detected;
+          if (roiNorm) {
+            const rx0 = roiNorm.x0 * vw, rx1 = roiNorm.x1 * vw;
+            const ry0 = roiNorm.y0 * vh, ry1 = roiNorm.y1 * vh;
+            filtered = filtered.filter(b => b.x >= rx0 && b.x <= rx1 && b.y >= ry0 && b.y <= ry1);
+          }
+
+          if (p.blobThresholdByCount && filtered.length > 0) {
+            filtered.sort((a, b) => b.size - a.size);
+            filtered = filtered.slice(0, Math.max(1, p.blobCountThreshold));
+          }
+
+          baseBlobs = filtered;
+          cachedBlobs = filtered;
+        }
+
+        // --- A2. 声音驱动方框律动弹跳与高频微颤 ---
+        let blobs = baseBlobs;
+        if (p.audioReactive && p.audioBoxBounce && baseBlobs.length > 0) {
+          const bounceScale = 1 + Math.pow(liveBass, 1.3) * 0.72;
+          const jitterAmp = Math.pow(liveHigh, 1.4) * 14;
+          const tSec = nowMs / 1000;
+          blobs = baseBlobs.map((b, idx) => {
+            const jx = Math.sin(tSec * 29 + idx * 1.9) * jitterAmp + Math.cos(tSec * 12 + idx) * (liveMid * 5);
+            const jy = Math.cos(tSec * 33 + idx * 2.3) * jitterAmp + Math.sin(tSec * 14 + idx) * (liveMid * 5);
+            const cx = Math.max(0, Math.min(vw - 1, b.x + jx));
+            const cy = Math.max(0, Math.min(vh - 1, b.y + jy));
+            const bw = (b.maxX - b.minX) * bounceScale;
+            const bh = (b.maxY - b.minY) * bounceScale;
+            return {
+              x: cx,
+              y: cy,
+              size: b.size * bounceScale,
+              minX: cx - bw / 2,
+              minY: cy - bh / 2,
+              maxX: cx + bw / 2,
+              maxY: cy + bh / 2,
+            };
+          });
+        }
+
+        // 更新左上角 TD CHOP 波形图与算子状态栏
+        const avgArea = blobs.length > 0 ? blobs.reduce((s, b) => s + b.size, 0) / blobs.length : 0;
+        document.getElementById('hudTargets').textContent = blobs.length;
+        document.getElementById('hudArea').textContent = avgArea.toFixed(1);
+        document.getElementById('nodeBlobText').textContent = `blobtrack1 (${blobs.length})`;
+        if (frameCount % 2 === 0) updateChopScope(blobs.length, avgArea, p.audioReactive);
+
+        const getRect = (b, side) => {
+          if (p.shape === 'rect') {
+            if (!p.singleTrackingMode && !p.sameSizeEnabled && b.maxX > b.minX && b.maxY > b.minY) {
+              const rawW = b.maxX - b.minX;
+              const rawH = b.maxY - b.minY;
+              const maxDim = p.blobSize * 1.35 * (p.audioReactive && p.audioBoxBounce ? (1 + liveBass * 0.45) : 1);
+              const scale = Math.min(1, maxDim / Math.max(rawW, rawH, 1));
+              const w = Math.max(22, rawW * scale);
+              const h = Math.max(16, rawH * scale);
+              return { x: b.x - w / 2, y: b.y - h / 2, w, h };
+            }
+            const w = side * 1.45;
+            const h = side * 0.85;
+            return { x: b.x - w / 2, y: b.y - h / 2, w, h };
+          }
+          return { x: b.x - side / 2, y: b.y - side / 2, w: side, h: side };
+        };
+
+        const getSide = (b) => {
+          const base = p.sameSizeEnabled ? p.blobSize / 2 : Math.min(b.size, p.blobSize);
+          return (p.audioReactive && p.audioBoxBounce) ? base * (1 + Math.pow(liveBass, 1.3) * 0.55) : base;
+        };
+
+        // --- B. WebGL 局部遮罩滤镜与全局音画视觉增效渲染 ---
+        const effectCode = EFFECT_MAP[p.filterEffect] || 0;
+        const needAudioShader = p.audioReactive && (p.audioChromatic || p.audioBassZoom || p.audioFlash);
+        if (gl && glProgram && (effectCode > 0 || needAudioShader)) {
+          if (webglCanvas.width !== vw || webglCanvas.height !== vh) {
+            webglCanvas.width = vw; webglCanvas.height = vh;
+            gl.viewport(0, 0, vw, vh);
+          }
+          if (maskCanvas.width !== vw || maskCanvas.height !== vh) {
+            maskCanvas.width = vw; maskCanvas.height = vh;
+          }
+          maskCtx.fillStyle = 'black';
+          maskCtx.fillRect(0, 0, vw, vh);
+          maskCtx.fillStyle = 'white';
+
+          blobs.forEach((b, i) => {
+            if (!shouldShowBlob(i)) return;
+            const side = getSide(b);
+            if (p.shape === 'square' || p.shape === 'rect') {
+              const r = getRect(b, side);
+              maskCtx.fillRect(r.x, r.y, r.w, r.h);
+            } else if (p.shape === 'circle') {
+              maskCtx.beginPath();
+              maskCtx.arc(b.x, b.y, side / 2, 0, Math.PI * 2);
+              maskCtx.fill();
+            } else if (p.shape === 'particle') {
+              const rad = side * 0.42;
+              maskCtx.beginPath();
+              maskCtx.arc(b.x, b.y, rad * 0.72, 0, Math.PI * 2);
+              for (let k = 0; k < 8; k++) {
+                const ang = (nowMs / 1000) * 0.8 + k * (Math.PI / 4);
+                const d = rad * (0.55 + 0.35 * ((nowMs / 700 + k * 0.23) % 1));
+                maskCtx.moveTo(b.x + Math.cos(ang) * d, b.y + Math.sin(ang) * d);
+                maskCtx.arc(b.x + Math.cos(ang) * d, b.y + Math.sin(ang) * d, rad * 0.28, 0, Math.PI * 2);
+              }
+              maskCtx.fill();
+            } else if (p.shape === 'cross') {
+              const arm = side * 0.48, thick = Math.max(6, side * 0.22);
+              maskCtx.fillRect(b.x - arm, b.y - thick / 2, arm * 2, thick);
+              maskCtx.fillRect(b.x - thick / 2, b.y - arm, thick, arm * 2);
+            }
+          });
+
+          gl.useProgram(glProgram);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, videoTex);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+
+          gl.activeTexture(gl.TEXTURE1);
+          gl.bindTexture(gl.TEXTURE_2D, maskTex);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, maskCanvas);
+
+          gl.uniform1i(gl.getUniformLocation(glProgram, 'u_texture'), 0);
+          gl.uniform1i(gl.getUniformLocation(glProgram, 'u_maskTexture'), 1);
+          gl.uniform1i(gl.getUniformLocation(glProgram, 'u_effectType'), effectCode);
+          gl.uniform1f(gl.getUniformLocation(glProgram, 'u_time'), nowMs / 1000);
+          gl.uniform2f(gl.getUniformLocation(glProgram, 'u_resolution'), vw, vh);
+          gl.uniform1i(gl.getUniformLocation(glProgram, 'u_invertMask'), p.invertMask ? 1 : 0);
+
+          gl.uniform1f(gl.getUniformLocation(glProgram, 'u_audioBass'), p.audioReactive ? liveBass : 0);
+          gl.uniform1f(gl.getUniformLocation(glProgram, 'u_audioMid'), p.audioReactive ? liveMid : 0);
+          gl.uniform1f(gl.getUniformLocation(glProgram, 'u_audioHigh'), p.audioReactive ? liveHigh : 0);
+          gl.uniform1i(gl.getUniformLocation(glProgram, 'u_audioZoom'), (p.audioReactive && p.audioBassZoom) ? 1 : 0);
+          gl.uniform1i(gl.getUniformLocation(glProgram, 'u_audioChromatic'), (p.audioReactive && p.audioChromatic) ? 1 : 0);
+          gl.uniform1i(gl.getUniformLocation(glProgram, 'u_audioFlash'), (p.audioReactive && p.audioFlash) ? 1 : 0);
+
+          const hex = p.color.replace('#', '');
+          const cr = parseInt(hex.substring(0, 2) || 'ff', 16) / 255;
+          const cg = parseInt(hex.substring(2, 4) || 'ff', 16) / 255;
+          const cb = parseInt(hex.substring(4, 6) || 'ff', 16) / 255;
+          gl.uniform3f(gl.getUniformLocation(glProgram, 'u_color'), cr, cg, cb);
+
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          ctx.drawImage(webglCanvas, 0, 0, vw, vh);
+        } else {
+          ctx.drawImage(video, 0, 0, vw, vh);
+        }
+
+        // --- C. 2D 矢量 HUD 追踪框与框内数值 ---
+        const isRect = p.shape === 'square' || p.shape === 'rect';
+        const sw = p.strokeWidth + ((p.audioReactive && p.audioBoxBounce && liveBass > 0.55) ? liveBass * 2.2 : 0);
+        const randColor = () => `hsl(${Math.random() * 360}, 75%, 60%)`;
+
+        if (p.singleTrackingMode && blobs.length === 1) {
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = sw;
+          ctx.beginPath();
+          ctx.moveTo(0, blobs[0].y); ctx.lineTo(vw, blobs[0].y);
+          ctx.moveTo(blobs[0].x, 0); ctx.lineTo(blobs[0].x, vh);
+          ctx.stroke();
+        }
+
+        blobs.forEach((b, i) => {
+          if (!shouldShowBlob(i)) return;
+          const col = p.crazyColor ? randColor() : p.color;
+          const side = getSide(b);
+          const r = getRect(b, side);
+          const st = p.regionStyle;
+
+          if (p.showBox) {
+            // 追踪框周围的声音 RGB 色差重影外框 (仅围绕追踪框边缘，随鼓点与高频瞬态错位分离)
+            if (p.audioReactive && p.audioChromatic && (liveBass + liveHigh) > 0.08) {
+              const caShift = Math.min(14, (liveBass * 5.5 + liveHigh * 8.5));
+              const caY = Math.min(6, liveHigh * 4.2);
+              ctx.save();
+              ctx.lineWidth = Math.max(1, sw * 0.85);
+              ctx.globalAlpha = Math.min(0.85, 0.25 + (liveBass + liveHigh) * 0.55);
+              if (isRect) {
+                ctx.strokeStyle = '#38bdf8';
+                ctx.strokeRect(r.x - caShift, r.y - caY, r.w, r.h);
+                ctx.strokeStyle = '#f43f5e';
+                ctx.strokeRect(r.x + caShift, r.y + caY, r.w, r.h);
+              } else if (p.shape === 'circle') {
+                ctx.strokeStyle = '#38bdf8';
+                ctx.beginPath(); ctx.arc(b.x - caShift, b.y - caY, side / 2, 0, Math.PI * 2); ctx.stroke();
+                ctx.strokeStyle = '#f43f5e';
+                ctx.beginPath(); ctx.arc(b.x + caShift, b.y + caY, side / 2, 0, Math.PI * 2); ctx.stroke();
+              } else if (p.shape === 'cross') {
+                drawCrossShape(ctx, b.x - caShift, b.y - caY, side, '#38bdf8', Math.max(1, sw * 0.8));
+                drawCrossShape(ctx, b.x + caShift, b.y + caY, side, '#f43f5e', Math.max(1, sw * 0.8));
+              } else if (p.shape === 'particle') {
+                ctx.strokeStyle = '#38bdf8';
+                ctx.beginPath(); ctx.arc(b.x - caShift, b.y - caY, side * 0.36, 0, Math.PI * 2); ctx.stroke();
+                ctx.strokeStyle = '#f43f5e';
+                ctx.beginPath(); ctx.arc(b.x + caShift, b.y + caY, side * 0.36, 0, Math.PI * 2); ctx.stroke();
+              }
+              ctx.restore();
+            }
+
+            ctx.fillStyle = col;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = col;
+            ctx.lineWidth = sw;
+
+            if (p.shape === 'particle') {
+              const audioBoost = p.audioReactive ? (liveBass * 0.7 + liveHigh * 0.6) : 0;
+              drawParticleField(ctx, b.x, b.y, side, col, sw, nowMs, i, audioBoost);
+            } else if (p.shape === 'cross') {
+              drawCrossShape(ctx, b.x, b.y, side, col, sw);
+            } else if (st === 'l_frame') {
+              ctx.fillStyle = col + '14';
+              if (isRect) {
+                ctx.fillRect(r.x, r.y, r.w, r.h);
+                const cl = 0.25 * Math.min(r.w, r.h);
+                ctx.beginPath();
+                ctx.moveTo(r.x, r.y + cl); ctx.lineTo(r.x, r.y); ctx.lineTo(r.x + cl, r.y);
+                ctx.moveTo(r.x + r.w - cl, r.y); ctx.lineTo(r.x + r.w, r.y); ctx.lineTo(r.x + r.w, r.y + cl);
+                ctx.moveTo(r.x, r.y + r.h - cl); ctx.lineTo(r.x, r.y + r.h); ctx.lineTo(r.x + cl, r.y + r.h);
+                ctx.moveTo(r.x + r.w - cl, r.y + r.h); ctx.lineTo(r.x + r.w, r.y + r.h); ctx.lineTo(r.x + r.w, r.y + r.h - cl);
+                ctx.stroke();
+              } else {
+                ctx.beginPath(); ctx.arc(b.x, b.y, side / 2, 0, Math.PI * 2); ctx.fill();
+                for (let a = 0; a < 4; a++) {
+                  const ang = a * (Math.PI / 2);
+                  ctx.beginPath();
+                  ctx.arc(b.x, b.y, side / 2, ang - 0.3, ang + 0.3);
+                  ctx.stroke();
+                }
+              }
+            } else if (st === 'x_frame') {
+              if (isRect) {
+                ctx.strokeRect(r.x, r.y, r.w, r.h);
+                ctx.beginPath();
+                ctx.moveTo(r.x, r.y); ctx.lineTo(r.x + r.w, r.y + r.h);
+                ctx.moveTo(r.x + r.w, r.y); ctx.lineTo(r.x, r.y + r.h);
+                ctx.stroke();
+              } else {
+                const rad = side / 2, d = rad * Math.SQRT1_2;
+                ctx.beginPath(); ctx.arc(b.x, b.y, rad, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(b.x - d, b.y - d); ctx.lineTo(b.x + d, b.y + d);
+                ctx.moveTo(b.x + d, b.y - d); ctx.lineTo(b.x - d, b.y + d);
+                ctx.stroke();
+              }
+            } else if (st === 'frame') {
+              if (isRect) {
+                ctx.strokeRect(r.x, r.y, r.w, r.h);
+                [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]].forEach(([vx, vy]) => {
+                  ctx.fillRect(vx - 2.5, vy - 2.5, 5, 5);
+                });
+              } else {
+                ctx.beginPath(); ctx.arc(b.x, b.y, side / 2, 0, Math.PI * 2); ctx.stroke();
+              }
+            } else if (st === 'label' || st === 'label2') {
+              const valStr = formatBlobText(i, b, blobs.length, nowMs, p.textContentType);
+              const lbl = p.showText ? `OBJ ${i + 1} · ${valStr}` : `OBJ ${i + 1}`;
+              ctx.font = '600 11px "SF Mono", Menlo, sans-serif';
+              const tw = ctx.measureText(lbl).width + 10;
+              if (isRect) {
+                ctx.strokeRect(r.x, r.y, r.w, r.h);
+                const by = st === 'label' ? r.y : Math.max(0, r.y - 17);
+                ctx.fillStyle = col;
+                ctx.fillRect(r.x, by, Math.max(r.w, tw), 16);
+                ctx.fillStyle = '#000000';
+                ctx.fillText(lbl, r.x + 5, by + 11.5);
+              } else {
+                ctx.beginPath(); ctx.arc(b.x, b.y, side / 2, 0, Math.PI * 2); ctx.stroke();
+                ctx.fillStyle = col;
+                ctx.fillRect(b.x + 8, b.y - 8, tw, 16);
+                ctx.fillStyle = '#000000';
+                ctx.fillText(lbl, b.x + 12, b.y + 4);
+              }
+            } else if (st === 'scope') {
+              if (isRect) {
+                ctx.strokeRect(r.x, r.y, r.w, r.h);
+                ctx.beginPath();
+                ctx.moveTo(r.x, b.y); ctx.lineTo(r.x + r.w, b.y);
+                ctx.moveTo(b.x, r.y); ctx.lineTo(b.x, r.y + r.h);
+                ctx.stroke();
+              } else {
+                const rad = side / 2;
+                ctx.beginPath(); ctx.arc(b.x, b.y, rad, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(b.x - rad, b.y); ctx.lineTo(b.x + rad, b.y);
+                ctx.moveTo(b.x, b.y - rad); ctx.lineTo(b.x, b.y + rad);
+                ctx.stroke();
+              }
+            } else if (st === 'grid') {
+              ctx.strokeRect(r.x, r.y, r.w, r.h);
+              ctx.strokeStyle = col + '55';
+              ctx.lineWidth = 1;
+              for (let gy = r.y + 6; gy < r.y + r.h; gy += 6) {
+                ctx.beginPath(); ctx.moveTo(r.x, gy); ctx.lineTo(r.x + r.w, gy); ctx.stroke();
+              }
+            } else if (st === 'dash') {
+              ctx.save();
+              ctx.setLineDash([5, 5]);
+              ctx.lineDashOffset = -(nowMs / 25) % 20;
+              if (isRect) ctx.strokeRect(r.x, r.y, r.w, r.h);
+              else { ctx.beginPath(); ctx.arc(b.x, b.y, side / 2, 0, Math.PI * 2); ctx.stroke(); }
+              ctx.restore();
+            } else if (st === 'win2k') {
+              drawWin2kBox(ctx, r.x, r.y, r.w, r.h);
+            } else if (st === 'glow') {
+              ctx.save();
+              ctx.shadowBlur = 16;
+              ctx.shadowColor = col;
+              if (isRect) ctx.strokeRect(r.x, r.y, r.w, r.h);
+              else { ctx.beginPath(); ctx.arc(b.x, b.y, side / 2, 0, Math.PI * 2); ctx.stroke(); }
+              ctx.restore();
+            } else if (st === 'particle') {
+              const audioBoost = p.audioReactive ? (liveBass * 0.7 + liveHigh * 0.6) : 0;
+              drawParticleField(ctx, b.x, b.y, side, col, sw, nowMs, i, audioBoost);
+            } else if (st === 'cross') {
+              drawCrossShape(ctx, b.x, b.y, side, col, sw);
+            } else {
+              if (isRect) ctx.strokeRect(r.x, r.y, r.w, r.h);
+              else if (p.shape === 'circle') { ctx.beginPath(); ctx.arc(b.x, b.y, side / 2, 0, Math.PI * 2); ctx.stroke(); }
+            }
+          }
+
+          // --- 方框数值文本渲染 ---
+          if (p.showText && (!p.showBox || p.shape === 'particle' || p.shape === 'cross' || (st !== 'label' && st !== 'label2'))) {
+            const txt = formatBlobText(i, b, blobs.length, nowMs, p.textContentType);
+            ctx.font = `500 ${p.fontSize}px "SF Mono", "JetBrains Mono", Menlo, monospace`;
+            ctx.fillStyle = col;
+            ctx.textBaseline = 'middle';
+            if (p.textPosition === 'center') {
+              ctx.textAlign = 'center';
+              ctx.fillText(txt, b.x, b.y);
+            } else if (p.textPosition === 'inside_tl') {
+              ctx.textAlign = 'left';
+              ctx.fillText(txt, r.x + 5, r.y + p.fontSize * 0.8);
+            } else if (p.textPosition === 'top') {
+              ctx.textAlign = isRect ? 'left' : 'center';
+              ctx.fillText(txt, isRect ? r.x : b.x, Math.max(12, r.y - 8));
+            } else {
+              ctx.textAlign = isRect ? 'left' : 'center';
+              ctx.fillText(txt, isRect ? r.x : b.x, Math.min(vh - 10, r.y + r.h + p.fontSize));
+            }
+          }
+        });
+
+        // --- D. 拓扑连线路由 (支持声音驱动琴弦声波共振) ---
+        const activeBlobs = blobs.filter((_, idx) => shouldShowBlob(idx));
+        const drawConn = (p1, p2, idx) => {
+          ctx.save();
+          ctx.strokeStyle = p.crazyColor ? randColor() : p.color;
+          ctx.lineWidth = sw;
+          if (p.isDashedLine) ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          const dx = p2.x - p1.x, dy = p2.y - p1.y, dist = Math.hypot(dx, dy) || 1;
+          const nx = -dy / dist, ny = dx / dist;
+
+          if (p.audioReactive && p.audioLineWave && (liveBass + liveMid + liveHigh) > 0.03) {
+            const steps = 28;
+            const waveAmp = (liveBass * 28 + liveMid * 22 + liveHigh * 16) * Math.min(1, dist / 140);
+            const freq = 2 + Math.floor(liveHigh * 5);
+            const phase = (nowMs / 1000) * 18 + idx * 1.3;
+            ctx.moveTo(p1.x, p1.y);
+            for (let s = 1; s <= steps; s++) {
+              const t = s / steps;
+              const env = Math.sin(t * Math.PI);
+              const osc = Math.sin(t * Math.PI * 2 * freq + phase) + 0.45 * Math.cos(t * Math.PI * 6 - phase * 1.4);
+              const offset = env * waveAmp * osc;
+              ctx.lineTo(p1.x + dx * t + nx * offset, p1.y + dy * t + ny * offset);
+            }
+          } else if (p.lineStyle === 'curve') {
+            const off = 0.28 * dist * (idx % 2 === 0 ? 1 : -1);
+            ctx.moveTo(p1.x, p1.y);
+            ctx.quadraticCurveTo((p1.x + p2.x)/2 + nx * off, (p1.y + p2.y)/2 + ny * off, p2.x, p2.y);
+          } else if (p.lineStyle === 'snake') {
+            const s = Math.min(70, 0.5 * dist);
+            ctx.moveTo(p1.x, p1.y);
+            ctx.bezierCurveTo(p1.x + dx/3 + nx*s, p1.y + dy/3 + ny*s, p1.x + 2*dx/3 - nx*s, p1.y + 2*dy/3 - ny*s, p2.x, p2.y);
+          } else if (p.lineStyle === 'lightning') {
+            ctx.moveTo(p1.x, p1.y);
+            for (let k = 1; k < 6; k++) {
+              const t = k / 6;
+              const j = (Math.random() - 0.5) * Math.min(40, 0.35 * dist);
+              ctx.lineTo(p1.x + dx * t + nx * j, p1.y + dy * t + ny * j);
+            }
+            ctx.lineTo(p2.x, p2.y);
+          } else {
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        };
+
+        if (p.useCenterAsHub) {
+          const center = { x: vw / 2, y: vh / 2 };
+          activeBlobs.forEach((b, idx) => drawConn(center, b, idx));
+        } else if (activeBlobs.length >= 2 && p.lineNum > 0) {
+          const count = Math.floor(activeBlobs.length * p.lineNum);
+          for (let k = 0; k < count; k++) {
+            const b1 = activeBlobs[k % activeBlobs.length];
+            const b2 = activeBlobs[(k * 3 + 1) % activeBlobs.length];
+            if (b1 !== b2) drawConn(b1, b2, k);
+          }
+        }
+
+        // --- D2. 画面底部 28 段动态音频频谱仪 HUD ---
+        if (p.audioReactive && p.audioSpectrumHud) {
+          const numBars = 28;
+          const totalW = Math.min(vw * 0.65, 380);
+          const startX = (vw - totalW) / 2;
+          const baseY = vh - 16;
+          const barW = Math.max(3, (totalW / numBars) - 3);
+          const maxBarH = Math.min(vh * 0.12, 68);
+          const tSec = nowMs / 1000;
+          ctx.save();
+          for (let bi = 0; bi < numBars; bi++) {
+            const ratio = bi / Math.max(1, numBars - 1);
+            let bandVal = 0;
+            if (ratio < 0.35) bandVal = liveBass * (1 - ratio * 0.4);
+            else if (ratio < 0.7) bandVal = liveMid * (0.85 + 0.3 * Math.sin(tSec * 14 + bi));
+            else bandVal = liveHigh * (0.8 + 0.4 * Math.cos(tSec * 20 + bi));
+            const wave = 0.75 + 0.25 * Math.sin(tSec * 15 + bi * 0.65);
+            const bh = Math.max(3, Math.min(maxBarH, bandVal * maxBarH * wave));
+            const bx = startX + bi * (totalW / numBars);
+            ctx.fillStyle = bi % 3 === 0 ? '#FFFFFF' : p.color;
+            ctx.globalAlpha = 0.85;
+            ctx.fillRect(bx, baseY - bh, barW, bh);
+          }
+          ctx.restore();
+        }
+
+        // --- E. 绘制 ROI 框选区辅助线 ---
+        if (roiNorm) {
+          const rx = roiNorm.x0 * vw, ry = roiNorm.y0 * vh;
+          const rw = (roiNorm.x1 - roiNorm.x0) * vw, rh = (roiNorm.y1 - roiNorm.y0) * vh;
+          ctx.save();
+          ctx.strokeStyle = '#FBBF24';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([6, 4]);
+          ctx.strokeRect(rx, ry, rw, rh);
+          ctx.fillStyle = 'rgba(251, 191, 36, 0.06)';
+          ctx.fillRect(rx, ry, rw, rh);
+          ctx.font = '600 10px "SF Mono", Menlo, monospace';
+          ctx.fillStyle = '#FBBF24';
+          ctx.textAlign = 'left';
+          ctx.fillText('ROI ACTIVE', rx + 6, Math.max(12, ry + 12));
+          ctx.restore();
+        }
+      }
+      requestAnimationFrame(renderFrame);
+    }
+
+    // =========================================================================
+    // 6. 视频源控制、拖拽上传与双引擎导出
+    // =========================================================================
+    const sourceLabel = document.getElementById('sourceLabel');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const speedSelect = document.getElementById('speedSelect');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const viewportStage = document.getElementById('viewportStage');
+
+    function loadLocalVideoFile(f) {
+      if (!f) return;
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(tr => tr.stop());
+        cameraStream = null;
+        cameraBtn.classList.remove('recording-active');
+        cameraBtn.textContent = t('btnCamera');
+      }
+      currentUploadedFile = f;
+      cachedBlobs = [];
+      video.srcObject = null;
+      video.src = URL.createObjectURL(f);
+      video.playbackRate = parseFloat(speedSelect.value);
+
+      // 导入视频时默认优先使用该视频自带的音乐音轨并开启音频反应
+      stopLiveAudio();
+      bgAudio.pause();
+      currentAudioFile = null;
+      silentVideoFrames = 0;
+      setVideoAudioActive(true, 'AUD: 原视频音轨 · ' + f.name);
+      document.getElementById('audio_reactive').checked = true;
+
+      video.play().catch(() => {});
+      playPauseBtn.textContent = t('btnPause');
+      sourceLabel.textContent = 'SRC: ' + f.name;
+    }
+
+    document.getElementById('videoFileInput').addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (f) loadLocalVideoFile(f);
+    });
+
+    // 支持直接拖拽视频或音乐文件到中央舞台
+    viewportStage.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      viewportStage.classList.add('drag-over');
+    });
+    viewportStage.addEventListener('dragleave', () => {
+      viewportStage.classList.remove('drag-over');
+    });
+    viewportStage.addEventListener('drop', (e) => {
+      e.preventDefault();
+      viewportStage.classList.remove('drag-over');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!f) return;
+      if (f.type.startsWith('video/')) loadLocalVideoFile(f);
+      else if (f.type.startsWith('audio/') || /\.(mp3|wav|flac|m4a|ogg|aac)$/i.test(f.name)) loadLocalAudioFile(f);
+    });
+
+    cameraBtn.addEventListener('click', async () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(tr => tr.stop());
+        cameraStream = null;
+        cameraBtn.classList.remove('recording-active');
+        cameraBtn.textContent = t('btnCamera');
+        video.srcObject = null;
+        video.src = currentUploadedFile ? URL.createObjectURL(currentUploadedFile) : './demo_input.mp4';
+        video.play();
+        return;
+      }
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+        video.srcObject = cameraStream;
+        video.play();
+        cameraBtn.classList.add('recording-active');
+        cameraBtn.textContent = t('btnCameraStop');
+        sourceLabel.textContent = 'SRC: Live Camera Feed';
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    // 监听视频真实播放状态，确保按钮文字和状态 100% 同步，绝不造成假死误导
+    video.addEventListener('play', () => {
+      playPauseBtn.textContent = t('btnPause');
+    });
+    video.addEventListener('pause', () => {
+      playPauseBtn.textContent = t('btnPlay');
+    });
+
+    playPauseBtn.addEventListener('click', () => {
+      ensureAudioEngine();
+      if (video.paused) {
+        video.play().catch(() => {});
+        if (currentAudioFile && bgAudio.src) bgAudio.play().catch(() => {});
+      } else {
+        video.pause();
+        if (currentAudioFile && !bgAudio.paused) bgAudio.pause();
+      }
+    });
+
+    // 点击主画布区域也可以直接切换播放与暂停（ROI 框选模式除外）
+    mainCanvas.addEventListener('click', (e) => {
+      if (roiMode) return;
+      ensureAudioEngine();
+      if (video.paused) {
+        video.play().catch(() => {});
+        if (currentAudioFile && bgAudio.src) bgAudio.play().catch(() => {});
+      } else {
+        video.pause();
+        if (currentAudioFile && !bgAudio.paused) bgAudio.pause();
+      }
+    });
+
+    // 页面任意首次点击，自动解锁浏览器音频上下文与播放限制，彻底防止自动播放策略拦截导致的画面定格假死
+    const unlockUserGesture = () => {
+      ensureAudioEngine();
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
+      window.removeEventListener('pointerdown', unlockUserGesture);
+    };
+    window.addEventListener('pointerdown', unlockUserGesture, { once: true });
+
+    speedSelect.addEventListener('change', () => {
+      video.playbackRate = parseFloat(speedSelect.value);
+    });
+
+    // 快捷键支持: Space 播放/暂停, R 随机灵感, S 截帧
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        playPauseBtn.click();
+      } else if (e.key === 'r' || e.key === 'R') {
+        document.getElementById('randomBtn').click();
+      } else if (e.key === 's' || e.key === 'S') {
+        document.getElementById('snapBtn').click();
+      }
+    });
+
+    // 浏览器实时录制 WebM (自动合并实时电脑音频流)
+    let mediaRecorder = null, recordedChunks = [];
+    const recordWebmBtn = document.getElementById('recordWebmBtn');
+    recordWebmBtn.addEventListener('click', () => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        recordWebmBtn.textContent = t('btnRecordWebm');
+        recordWebmBtn.classList.remove('recording-active');
+        return;
+      }
+      const stream = mainCanvas.captureStream(60);
+      if (liveAudioStream && liveAudioStream.getAudioTracks().length > 0) {
+        liveAudioStream.getAudioTracks().forEach(tr => stream.addTrack(tr));
+      }
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 15000000 });
+      recordedChunks = [];
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `latentvision_live_${Date.now()}.webm`;
+        a.click();
+      };
+      mediaRecorder.start();
+      recordWebmBtn.textContent = t('btnRecordStop');
+      recordWebmBtn.classList.add('recording-active');
+    });
+
+    // Python 后端渲染高清 MP4
+    const exportMp4Btn = document.getElementById('exportMp4Btn');
+    const exportToast = document.getElementById('exportToast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastPct = document.getElementById('toastPct');
+    const toastBar = document.getElementById('toastBar');
+    const toastSub = document.getElementById('toastSub');
+    const downloadReadyBtn = document.getElementById('downloadReadyBtn');
+
+    exportMp4Btn.addEventListener('click', async () => {
+      const formData = new FormData();
+      if (currentUploadedFile) {
+        formData.append('video', currentUploadedFile);
+      } else {
+        formData.append('use_demo', 'true');
+      }
+      if (!currentAudioFile && liveAudioChunks.length > 0) {
+        const liveBlob = new Blob(liveAudioChunks, { type: 'audio/webm' });
+        currentAudioFile = new File([liveBlob], 'pc_live_audio.webm', { type: 'audio/webm' });
+      }
+      if (currentAudioFile) {
+        formData.append('audio', currentAudioFile);
+      }
+
+      const ids = [
+        'text_content_type', 'text_position', 'font_size',
+        'shape', 'region_style', 'filter_effect',
+        'line_style', 'line_num', 'stroke_width',
+        'threshold', 'blob_size', 'blob_size_threshold',
+        'blob_threshold_by_count', 'blob_count_threshold', 'frame_skip',
+        'audio_gain'
+      ];
+      ids.forEach(id => formData.append(id, document.getElementById(id).value));
+      formData.append('color', colorHex.value);
+
+      if (roiNorm) {
+        formData.append('roi_rect', `${roiNorm.x0},${roiNorm.y0},${roiNorm.x1},${roiNorm.y1}`);
+      }
+
+      const checks = [
+        'show_box', 'show_text', 'invert_mask', 'region_blink',
+        'use_center_as_hub', 'is_dashed_line', 'crazy_color', 'same_size_enabled', 'single_tracking_mode',
+        'audio_reactive', 'audio_flash', 'audio_chromatic', 'audio_bass_zoom',
+        'audio_box_bounce', 'audio_line_wave', 'audio_spectrum_hud'
+      ];
+      checks.forEach(id => formData.append(id, document.getElementById(id).checked));
+
+      exportMp4Btn.disabled = true;
+      exportToast.style.display = 'flex';
+      toastTitle.textContent = t('toastRendering');
+      toastPct.textContent = '0%';
+      toastBar.style.width = '2%';
+      toastSub.textContent = t('toastSyncing');
+
+      try {
+        const res = await fetch('/api/process', { method: 'POST', body: formData });
+        if (res.status === 404 || res.status === 405) {
+          exportToast.style.display = 'none';
+          exportMp4Btn.disabled = false;
+          recordWebmBtn.click();
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || 'Export error');
+
+        const jobId = data.job_id;
+        const timer = setInterval(async () => {
+          const stRes = await fetch('/api/status/' + jobId);
+          const st = await stRes.json();
+          if (st.status === 'processing' || st.status === 'queued') {
+            const pct = st.progress || 0;
+            toastBar.style.width = pct + '%';
+            toastPct.textContent = pct + '%';
+            if (st.total_frames > 0) {
+              toastSub.textContent = `FRAME ${st.done_frames} / ${st.total_frames}`;
+            }
+          } else if (st.status === 'completed') {
+            clearInterval(timer);
+            toastBar.style.width = '100%';
+            toastPct.textContent = '100%';
+            toastTitle.textContent = `${t('toastDone')} (${st.elapsed}s)`;
+            toastSub.textContent = t('toastAutoDl');
+            exportMp4Btn.disabled = false;
+
+            downloadReadyBtn.href = st.download_url;
+            downloadReadyBtn.style.display = 'inline-flex';
+            const a = document.createElement('a');
+            a.href = st.download_url;
+            a.download = '';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => { exportToast.style.display = 'none'; }, 4000);
+          } else if (st.status === 'failed') {
+            clearInterval(timer);
+            toastTitle.textContent = t('toastErr');
+            toastSub.textContent = st.error || '';
+            exportMp4Btn.disabled = false;
+          }
+        }, 350);
+      } catch (err) {
+        toastTitle.textContent = t('toastErr');
+        toastSub.textContent = err.message;
+        exportMp4Btn.disabled = false;
+      }
+    });
+
+    // =========================================================================
+    // 7. 统一风格自定义下拉菜单 (保留原生 select 作为数据源，所有 change 逻辑不变)
+    // =========================================================================
+    var lvSelects = [];
+    var openLvMenu = null;
+
+    function closeLvMenu() {
+      if (!openLvMenu) return;
+      openLvMenu.menu.classList.remove('open');
+      openLvMenu.wrap.classList.remove('open');
+      openLvMenu = null;
+    }
+
+    function syncLvSelect(entry) {
+      const opt = entry.sel.options[entry.sel.selectedIndex];
+      const txt = opt ? opt.textContent.trim() : '';
+      if (entry.label.textContent !== txt) entry.label.textContent = txt;
+    }
+
+    function syncAllLvSelects() {
+      lvSelects.forEach(syncLvSelect);
+    }
+
+    function enhanceSelect(sel, compact) {
+      if (!sel || sel.dataset.lvEnhanced) return;
+      sel.dataset.lvEnhanced = '1';
+      const wrap = document.createElement('div');
+      wrap.className = 'lv-select' + (compact ? ' compact' : '');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'lv-select-btn';
+      const label = document.createElement('span');
+      label.className = 'lv-select-label';
+      btn.appendChild(label);
+      btn.insertAdjacentHTML('beforeend', '<svg class="lv-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+      const menu = document.createElement('div');
+      menu.className = 'lv-menu';
+      sel.parentNode.insertBefore(wrap, sel);
+      wrap.appendChild(btn);
+      wrap.appendChild(sel);
+      sel.style.display = 'none';
+      document.body.appendChild(menu);
+      const entry = { sel, wrap, btn, label, menu };
+
+      const buildMenu = () => {
+        menu.innerHTML = '';
+        Array.from(sel.options).forEach(opt => {
+          const item = document.createElement('div');
+          item.className = 'lv-option' + (opt.value === sel.value ? ' selected' : '');
+          item.textContent = opt.textContent.trim();
+          item.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (sel.value !== opt.value) {
+              sel.value = opt.value;
+              sel.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            syncLvSelect(entry);
+            closeLvMenu();
+          });
+          menu.appendChild(item);
+        });
+      };
+
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (openLvMenu === entry) { closeLvMenu(); return; }
+        closeLvMenu();
+        buildMenu();
+        const rect = btn.getBoundingClientRect();
+        menu.style.minWidth = Math.max(rect.width, 120) + 'px';
+        menu.classList.add('open');
+        wrap.classList.add('open');
+        const mh = menu.offsetHeight, mw = menu.offsetWidth;
+        let top = rect.bottom + 4;
+        if (top + mh > window.innerHeight - 8) top = Math.max(8, rect.top - mh - 4);
+        let left = rect.left;
+        if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+        const selItem = menu.querySelector('.lv-option.selected');
+        if (selItem) menu.scrollTop = Math.max(0, selItem.offsetTop - mh / 2);
+        openLvMenu = entry;
+      });
+
+      sel.addEventListener('change', () => syncLvSelect(entry));
+      lvSelects.push(entry);
+      syncLvSelect(entry);
+    }
+
+    document.addEventListener('mousedown', (ev) => {
+      if (openLvMenu && !openLvMenu.menu.contains(ev.target) && !openLvMenu.btn.contains(ev.target)) closeLvMenu();
+    });
+    document.addEventListener('scroll', (ev) => {
+      if (openLvMenu && !openLvMenu.menu.contains(ev.target)) closeLvMenu();
+    }, true);
+    window.addEventListener('resize', closeLvMenu);
+    window.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeLvMenu(); });
+
+    document.querySelectorAll('.inspector select').forEach(sel => enhanceSelect(sel, false));
+    enhanceSelect(document.getElementById('speedSelect'), true);
+    // 预设 / 随机参数 / 音源切换等通过代码直接改写 value 的场景，定时同步显示文字
+    setInterval(syncAllLvSelects, 300);
+
+    // 初始化语言与视频流 (使用相对路径 ./demo_input.mp4，同时兼容本地 Flask 与 GitHub Pages 静态托管)
+    applyLanguage(currentLang);
+    video.src = './demo_input.mp4';
+    video.muted = true; // 初始静音以确保 100% 通过现代浏览器自动播放策略，防止画面停滞假死
+    video.play().catch(() => {
+      setTimeout(() => { video.play().catch(() => {}); }, 150);
+    });
+    requestAnimationFrame(renderFrame);
+  </script>
+</body>
+</html>

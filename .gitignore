@@ -1,0 +1,21 @@
+# macOS & OS artifacts
+.DS_Store
+Thumbs.db
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Runtime uploads & rendered outputs
+uploads/
+outputs/
+demo_output.mp4
+
+# Legacy BabyTrack duplicates & temporary drafts
+BabyTrack*
+LatentVision_AppIcon_OptionB.png
+LatentVision_Icon_Proposals_Comparison.png
+docs/
